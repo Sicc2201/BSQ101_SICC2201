@@ -6,7 +6,21 @@
 
 ##########################################################################
 '''
-# Description: 
+# Description:
+
+This file contains all the methods that we need to run a full Grover algorithm given logical formulas.
+
+
+# Methods:
+
+cnf_to_oracle(logical_formula: And) ->  : Method that translates a normal conjunctive logical formula into an oracle that takes the form of a quantum gate.
+
+build_diffuser(num_of_vars: int) ->  : Method that build the diffuser depending on the number of input qubits.
+
+build_grover_circuit(oracle: Gate, num_of_vars: int, num_iters: int) -> Gate : Method that build the Grover algorithm from the inputs.
+
+solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Callable, backend: Backend) ->  List[dict]: Given a logical formula, a method to convert
+ this formula into an oracle, and a backend on which to execute a quantum circuit.
 
 '''
 

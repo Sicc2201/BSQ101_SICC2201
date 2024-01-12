@@ -36,5 +36,4 @@ def ibmq_provider(provider_name):
     provider = QiskitRuntimeService()
     provider.backends()  # list of backends
     backend = provider.backend(provider_name)
-
     print(backend.configuration().basis_gates)

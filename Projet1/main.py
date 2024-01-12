@@ -2,7 +2,7 @@
 
 # Titre: main.py
 # Author: Christopher Sicotte (SICC2201)
-# last modified: 09/01/2024
+# last modified: 12/01/2024
 
 ##########################################################################
 '''
@@ -20,11 +20,9 @@ This file is the main file, the base project is build here.
 
 # Custom libraries
 import IBMQ_credentials
-import GroverUtils as utils
+import GroverUtils as grover
 import booleanProblems as bool
 
-# import packages
-from sympy import to_cnf
 ###########################################################################
 
 # MAIN
@@ -34,22 +32,21 @@ from sympy import to_cnf
 
 def main():
 
-    ibmq_token = ""  #put your IBMQ account Token here
+    ibmq_token = "put your IBMQ account Token here"
     backend = "ibmq_qasm_simulator"
 
     ####  uncomment if this is the first time you connect to your account  ##########
+
     # IBMQ_credentials.ibmq_connexion(ibmq_token)
+
     #################################################################################
 
     IBMQ_credentials.ibmq_provider(backend)
     
-    proposition_cake = bool.create_cake_problem()
-    proposition_pincus = bool.create_pincus_problem()
+    cnf_cake = bool.create_cake_problem()
+    cnf_pincus = bool.create_pincus_problem()
 
-    cnf = to_cnf(proposition_cake)
-
-    
-
+    grover.cnf_to_oracle(cnf_cake)
 
 
 

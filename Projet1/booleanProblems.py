@@ -8,8 +8,13 @@
 '''
 # Description: 
 
-This file contains all the boolean problems the projetcts needs to execute.
+This file contains all the boolean problems the projects needs to execute.
 This is where you put the problems propositions.
+
+# methods:
+
+create_cake_problem() -> cnf : create the cnf of the cake problem in the project1.
+create_pincus_problem() -> cnf : create the cnf of the Pincus planet problem in the project1.
 
 '''
 
@@ -19,7 +24,7 @@ This is where you put the problems propositions.
 
 ###########################################################################
 
-from simpy import symbols
+from simpy import symbols, to_cnf
 
 
 def create_cake_problem():
@@ -31,7 +36,8 @@ def create_cake_problem():
         Pe = (~Xd & ~Xa) | (Xd & Xa)
 
         Pg = Pa & Pb & Pc & Pd & Pe
-        return Pg
+        cnf = to_cnf(Pg)
+        return cnf
 
 def create_pincus_problem():
         
@@ -45,4 +51,5 @@ def create_pincus_problem():
         p7 = x1 & x4 >> ~x3
 
         pg = p1 & p2 & p3 & p4 & p5 & p6 & p7
-        return pg
+        cnf = to_cnf(pg)
+        return cnf
