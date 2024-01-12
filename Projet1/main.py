@@ -7,6 +7,9 @@
 ##########################################################################
 '''
 # Description: 
+
+This file is the main file, the base project is build here.
+
 '''
 
 ###########################################################################
@@ -18,9 +21,10 @@
 # Custom libraries
 import IBMQ_credentials
 import GroverUtils as utils
+import booleanProblems as bool
 
 # import packages
-from sympy import *
+from sympy import to_cnf
 ###########################################################################
 
 # MAIN
@@ -39,18 +43,18 @@ def main():
 
     IBMQ_credentials.ibmq_provider(backend)
     
-    Xa, Xb, Xc, Xd, Xe = symbols('Xa, Xb, Xc, Xd, Xe')
-    Pa = (~Xe & ~Xb) | (Xe & Xb)
-    Pb = (~Xc & ~Xe) | (Xc & Xe)
-    Pc = (~Xe & ~Xa) | (Xe & Xa)
-    Pd = (~Xc & ~Xb) | (Xc & Xb)
-    Pe = (~Xd & ~Xa) | (Xd & Xa)
+    proposition_cake = bool.create_cake_problem()
+    proposition_pincus = bool.create_pincus_problem()
 
-    Pg = Pa & Pb & Pc & Pd & Pe
-    Pg_cnf = to_cnf(Pg)
+    cnf = to_cnf(proposition_cake)
+
+    
 
 
-    return Pa
+
+
+
+    return 0
 
 if __name__ == "__main__":
     main()
