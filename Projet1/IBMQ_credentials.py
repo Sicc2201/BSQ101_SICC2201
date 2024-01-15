@@ -31,9 +31,11 @@ def ibmq_connexion(ID):
     # Save an IBM Quantum account and set it as your default account.
     QiskitRuntimeService.save_account(channel="ibm_quantum", token=ID, set_as_default=True)
 
+
 def ibmq_provider(provider_name):
 
     provider = QiskitRuntimeService()
     provider.backends()  # list of backends
     backend = provider.backend(provider_name)
-    print(backend.configuration().basis_gates)
+    # print(backend.configuration().basis_gates)
+    return provider, backend

@@ -23,6 +23,7 @@ import IBMQ_credentials
 import GroverUtils as grover
 import booleanProblems as bool
 
+
 ###########################################################################
 
 # MAIN
@@ -33,7 +34,7 @@ import booleanProblems as bool
 def main():
 
     ibmq_token = "put your IBMQ account Token here"
-    backend = "ibmq_qasm_simulator"
+    backend_name = "ibmq_qasm_simulator"
 
     ####  uncomment if this is the first time you connect to your account  ##########
 
@@ -41,15 +42,12 @@ def main():
 
     #################################################################################
 
-    IBMQ_credentials.ibmq_provider(backend)
+    provider, backend = IBMQ_credentials.ibmq_provider(backend_name)
     
     cnf_cake = bool.create_cake_problem()
     cnf_pincus = bool.create_pincus_problem()
 
-    grover.cnf_to_oracle(cnf_cake)
-
-
-
+    result = grover.solve_sat_with_grover(cnf_cake, grover.cnf_to_oracle(cnf_cake), backend)
 
     return 0
 
