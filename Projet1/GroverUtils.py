@@ -33,7 +33,7 @@ from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister
 from qiskit.circuit.library import XGate, ZGate, MCMT, MCMTVChain, Diagonal
 from qiskit_ibm_runtime import QiskitRuntimeService
 from qiskit.visualization import plot_histogram, array_to_latex, plot_gate_map
-from sympy import symbols, Implies, And, Or, to_cnf
+from sympy import symbols, Implies, Not, And, Or, to_cnf
 from math import floor, sqrt, pi
 
 from typing import Callable
@@ -60,22 +60,43 @@ def mesure_qubits(qc, nqubits):
     for i in range(nqubits):
         qc.measure(i, i)
 
-def args_to_toffoli(qc, clause, index):
+def args_to_toffoli(qc, variables,  clause, index):
     registers = qc.qregs
     vreg = registers[0]
     areg = registers[1]
+    print("variables: ", variables)
+    toffoli_state = []
+    qubit_index = []
 
-    toffoli = 0
-
-    if isinstance(clause, Or):
-
-        return
     if isinstance(clause, And):
+        for i in clause.args:
+            if isinstance(i, Not):
+                toffoli_state.append(0)
+                qubit_index.append(variables.index(Not(i)))
+            else:
+                toffoli_state.append(1)
+                qubit_index.append(variables.index(i))
+        
+    if isinstance(clause, Or):
+        for i in clause.args:
+            if isinstance(i, Not):
+                toffoli_state.append(1)
+                qubit_index.append(variables.index(Not(i)))
+            else:
+                toffoli_state.append(0)
+                qubit_index.append(variables.index(i))
 
-        return
     else:
         raise ValueError("The clause is not a valid one, it should be of type And or Or")
-
+    
+    
+    toffoli_state.append(1)
+    qubit_index.append(index)
+    print("toffoli_gate: ", toffoli_state)
+    print("qubit index: ", qubit_index)
+    print("index: ", index)
+    toffoli_gate = XGate().control(len(clause.args), ctrl_state = str(toffoli_state))
+    qc.append(toffoli_gate, vreg[qubit_index] + areg[index])
 
 def cnf_to_oracle(logical_formula: And):
 
@@ -91,9 +112,8 @@ def cnf_to_oracle(logical_formula: And):
     i = 0
     for clause in logical_formula.args:
         print("clause", clause)
-        args_to_toffoli(qc, clause, i)
+        args_to_toffoli(qc, list(variables),  clause, i)
         i += 1
-
 
     oracle_gate = qc.to_gate()
     oracle_gate.name = "Oracle"

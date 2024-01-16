@@ -29,7 +29,7 @@ from qiskit_ibm_runtime import QiskitRuntimeService
 
 def ibmq_connexion(ID):
     # Save an IBM Quantum account and set it as your default account.
-    QiskitRuntimeService.save_account(channel="ibm_quantum", token=ID, set_as_default=True)
+    QiskitRuntimeService.save_account(channel="ibm_quantum", token=ID, set_as_default=True, overwrite=True)
 
 
 def ibmq_provider(provider_name):
