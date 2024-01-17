@@ -33,7 +33,7 @@ import booleanProblems as bool
 
 def main():
 
-    ibmq_token = "0c6608850e201bf8b37f34926a723c3a304b098346257b24e6dd0a975b1cad1424fa9f02115d94e55ac2f1fc4d782a5ee0db3777a339cdb54f86c5ff37bd2564"
+    ibmq_token = "put your token here"
     backend_name = "ibmq_qasm_simulator"
 
     ####  uncomment if this is the first time you connect to your account  ##########

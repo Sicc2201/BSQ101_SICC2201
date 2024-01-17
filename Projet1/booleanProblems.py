@@ -36,7 +36,7 @@ def create_cake_problem():
     Pe = (~Xd & ~Xa) | (Xd & Xa)
 
     Pg = Pa & Pb & Pc & Pd & Pe
-    cnf = to_cnf(Pg)
+    cnf = to_cnf(Pg, True)
 
     # filter out all clauses that contains a litteral and its negation ex: (Xa | ~Xa)
     # filtered_cnf = [clause for clause in cnf.args if not any(isinstance(arg, Not) and arg.args[0] == arg2 for arg in clause.args for arg2 in clause.args)]
@@ -68,5 +68,5 @@ def create_pincus_problem():
     p7 = ~x1 & ~x4 & ~x3
 
     pg = p1 & p2 & p3 & p4 & p5 & p6 & p7
-    cnf = to_cnf(pg)
+    cnf = to_cnf(pg, True)
     return cnf

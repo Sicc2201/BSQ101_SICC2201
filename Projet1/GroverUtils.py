@@ -61,60 +61,61 @@ def mesure_qubits(qc, nqubits):
         qc.measure(i, i)
 
 def args_to_toffoli(qc, variables,  clause, index):
-    registers = qc.qregs
-    vreg = registers[0]
-    areg = registers[1]
+    # registers = qc.qregs
+    # vreg = registers[0]
+    # areg = registers[1]
     print("variables: ", variables)
-    toffoli_state = []
+    toffoli_qubits = ""
     qubit_index = []
 
     if isinstance(clause, And):
         for i in clause.args:
             if isinstance(i, Not):
-                toffoli_state.append(0)
+                toffoli_qubits += "0"
                 qubit_index.append(variables.index(Not(i)))
             else:
-                toffoli_state.append(1)
+                toffoli_qubits += "1"
                 qubit_index.append(variables.index(i))
         
     if isinstance(clause, Or):
         for i in clause.args:
             if isinstance(i, Not):
-                toffoli_state.append(1)
+                toffoli_qubits += "1"
                 qubit_index.append(variables.index(Not(i)))
             else:
-                toffoli_state.append(0)
+                toffoli_qubits += "0"
                 qubit_index.append(variables.index(i))
 
     else:
         raise ValueError("The clause is not a valid one, it should be of type And or Or")
     
-    
-    toffoli_state.append(1)
     qubit_index.append(index)
-    print("toffoli_gate: ", toffoli_state)
+    print("toffoli_qubits: ", toffoli_qubits)
     print("qubit index: ", qubit_index)
-    print("index: ", index)
-    toffoli_gate = XGate().control(len(clause.args), ctrl_state = str(toffoli_state))
-    qc.append(toffoli_gate, vreg[qubit_index] + areg[index])
+    toffoli_gate = XGate().control(len(toffoli_qubits), ctrl_state = toffoli_qubits)
+    qc.append(toffoli_gate, qubit_index)
 
 def cnf_to_oracle(logical_formula: And):
 
     print(logical_formula)
     variables = logical_formula.atoms()
-    print("proposition values: ", variables, "of type: ", type(variables))
+    print("proposition values: ", variables, " of type: ", type(variables),  " of lenght: ", len(variables))
 
     variables_circuit = QuantumRegister(len(variables), "var_qubits")
-    clauses_circuit = QuantumRegister(len(variables) -1, "anc_qubits")
-    # phase_circuit = QuantumCircuit(1)
+    clauses_circuit = QuantumRegister(len(variables), "anc_qubits")
+
     qc = QuantumCircuit(variables_circuit, clauses_circuit)
 
-    i = 0
+    i = len(variables)
     for clause in logical_formula.args:
         print("clause", clause)
         args_to_toffoli(qc, list(variables),  clause, i)
+        if isinstance(clause, Or):
+            qc.x(i)
+        print("*********************  gate applied to the circuit ************************")
         i += 1
 
+    qc.draw("mpl")
     oracle_gate = qc.to_gate()
     oracle_gate.name = "Oracle"
     return oracle_gate
@@ -123,37 +124,52 @@ def cnf_to_oracle(logical_formula: And):
 def build_grover_circuit(gate, num_of_vars: int, num_iters: int):
     
     variables_circuit = QuantumRegister(num_of_vars, name = "variables")
-    clauses_circuit = QuantumRegister(num_of_vars -1, name = "clauses")
-    # phase_circuit = QuantumCircuit(1)
-    cr = ClassicalRegister(num_of_vars -1, name = "CR")
+    clauses_circuit = QuantumRegister(num_of_vars, name = "clauses")
+    cr = ClassicalRegister(num_of_vars, name = "CR")
 
     qc = QuantumCircuit(variables_circuit, clauses_circuit, cr)
 
-    grover_circuit = initialize_s(qc, 0, qc.num_qubits - 1)
+    grover_circuit = initialize_s(qc, 0, variables_circuit.size - 1)
 
     for i in range(num_iters):
         grover_circuit.append(gate, qc.qubits)
-        grover_circuit.append(build_diffuser(qc.num_qubits), list(range(variables_circuit.num_qubits)))
+        grover_circuit.barrier()
+        grover_circuit.append(MCMT("z", clauses_circuit.size - 1, 1), list(range(variables_circuit.size, 2 * clauses_circuit.size))) # apply multicontrolled z gate
+        grover_circuit.barrier()
+        # *************************
+        # Apply the reverse gate
+        # **************************
+        grover_circuit.append(gate, qc.qubits)
+        grover_circuit.append(build_diffuser(variables_circuit.size), list(range(variables_circuit.size)))
         grover_circuit.barrier()
 
     return grover_circuit
 
 
+    # *************************
+    # TO CHECK
+    # **************************
+
 def build_diffuser(num_of_vars: int):
     qc = QuantumCircuit(num_of_vars)
+
     # apply transformation |s> -> |00..0> (H-gates)
     for qubit in range(num_of_vars):
         qc.h(qubit)
+
     # apply transformation |00..0> -> |11..1> (X-gates)
     for qubit in range(num_of_vars):
         qc.x(qubit)
-    # do multi-controlled-Z gate
+
+    # simulate a multicontrolled z gate
     qc.h(num_of_vars-1)
-    qc.mct(list(range(num_of_vars-1)), num_of_vars-1)  # multi-controlled-toffoli
+    qc.mct(list(range(num_of_vars-1)), num_of_vars-1)  # did not find a way to do a multicontrolled z gate with a gate instruction (MCMT() is not a gate instruction)
     qc.h(num_of_vars-1)
+
     # apply transformation |11..1> -> |00..0>
     for qubit in range(num_of_vars):
         qc.x(qubit)
+        
     # apply transformation |00..0> -> |s>
     for qubit in range(num_of_vars):
         qc.h(qubit)
@@ -172,8 +188,9 @@ def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Calla
     grover_circuit = build_grover_circuit(oracle, len(logical_formula.atoms()), nb_iter)
 
     # measurement
-    mesure_qubits(grover_circuit, grover_circuit.num_qubits)
-    print("num_qubits = ", grover_circuit.num_qubits)
+    print("num_qubits = ", len(logical_formula.atoms()))
+    mesure_qubits(grover_circuit, len(logical_formula.atoms()))
+ 
 
     grover_circuit.draw("mpl")
 
