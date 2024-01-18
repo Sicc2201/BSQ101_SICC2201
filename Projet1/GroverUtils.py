@@ -29,7 +29,7 @@ solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Callable,
 # IMPORTS
 
 ###########################################################################
-from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister
+from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister, IBMQ, Aer, transpile, execute
 from qiskit.circuit.library import XGate, ZGate, MCMT, MCMTVChain, Diagonal
 from qiskit_ibm_runtime import QiskitRuntimeService
 from qiskit.visualization import plot_histogram, array_to_latex, plot_gate_map
@@ -71,19 +71,19 @@ def args_to_toffoli(qc, variables,  clause, index):
     if isinstance(clause, And):
         for i in clause.args:
             if isinstance(i, Not):
-                toffoli_qubits += "0"
+                toffoli_qubits += "1"
                 qubit_index.append(variables.index(Not(i)))
             else:
-                toffoli_qubits += "1"
+                toffoli_qubits += "0"
                 qubit_index.append(variables.index(i))
         
     if isinstance(clause, Or):
         for i in clause.args:
             if isinstance(i, Not):
-                toffoli_qubits += "1"
+                toffoli_qubits += "0"
                 qubit_index.append(variables.index(Not(i)))
             else:
-                toffoli_qubits += "0"
+                toffoli_qubits += "1"
                 qubit_index.append(variables.index(i))
 
     else:
@@ -114,7 +114,6 @@ def cnf_to_oracle(logical_formula: And):
             qc.x(i)
         print("*********************  gate applied to the circuit ************************")
         i += 1
-
     qc.draw("mpl")
     oracle_gate = qc.to_gate()
     oracle_gate.name = "Oracle"
@@ -129,20 +128,22 @@ def build_grover_circuit(gate, num_of_vars: int, num_iters: int):
 
     qc = QuantumCircuit(variables_circuit, clauses_circuit, cr)
 
-    grover_circuit = initialize_s(qc, 0, variables_circuit.size - 1)
+    grover_circuit = initialize_s(qc, 0, variables_circuit.size)
 
     for i in range(num_iters):
         grover_circuit.append(gate, qc.qubits)
         grover_circuit.barrier()
-        grover_circuit.append(MCMT("z", clauses_circuit.size - 1, 1), list(range(variables_circuit.size, 2 * clauses_circuit.size))) # apply multicontrolled z gate
+        # grover_circuit.append(MCMT("z", clauses_circuit.size - 1, 1), list(range(variables_circuit.size, 2 * clauses_circuit.size))) # apply multicontrolled z gate
+
+        grover_circuit.h(clauses_circuit.size-1)
+        grover_circuit.mct(list(range(clauses_circuit.size-1)), clauses_circuit.size-1)  # did not find a way to do a multicontrolled z gate with a gate instruction (MCMT() is not a gate instruction)
+        grover_circuit.h(clauses_circuit.size-1)
+
         grover_circuit.barrier()
-        # *************************
-        # Apply the reverse gate
-        # **************************
-        grover_circuit.append(gate, qc.qubits)
+        grover_circuit.append(gate.inverse(), qc.qubits)
         grover_circuit.append(build_diffuser(variables_circuit.size), list(range(variables_circuit.size)))
         grover_circuit.barrier()
-
+        
     return grover_circuit
 
 
@@ -169,10 +170,12 @@ def build_diffuser(num_of_vars: int):
     # apply transformation |11..1> -> |00..0>
     for qubit in range(num_of_vars):
         qc.x(qubit)
-        
+
     # apply transformation |00..0> -> |s>
     for qubit in range(num_of_vars):
         qc.h(qubit)
+
+    qc.draw("mpl")
 
     U_s = qc.to_gate()
     U_s.name = "Diffuser"
@@ -181,7 +184,7 @@ def build_diffuser(num_of_vars: int):
 
 def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Callable, backend):
 
-    nb_solution = 1
+    nb_solution = 2
     nb_iter = floor(pi/4 * sqrt(len(logical_formula.atoms())/nb_solution)) # if you know the number of solutions
 
     oracle = logical_formula_to_oracle
@@ -189,10 +192,18 @@ def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Calla
 
     # measurement
     print("num_qubits = ", len(logical_formula.atoms()))
-    mesure_qubits(grover_circuit, len(logical_formula.atoms()))
+    print("num_iterations = ", len(logical_formula.atoms()))
+    mesure_qubits(grover_circuit, nb_iter)
  
+    grover_circuit.draw("mpl") # draw grover
 
-    grover_circuit.draw("mpl")
+    # Simulate and plot results
+    transpiled_qc = transpile(grover_circuit, backend)
+    # transpiled_qc.draw("mpl")
+    job = backend.run(transpiled_qc)
 
-    result = {0:0}
-    return result
+    results = list(job.result().get_counts().items())
+    # plot_histogram(job.result().get_counts())
+
+    # result = {0:0}
+    return transpiled_qc, results
