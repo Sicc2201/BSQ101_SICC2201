@@ -29,6 +29,9 @@ solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Callable,
 # IMPORTS
 
 ###########################################################################
+
+import QuantumUtils as utils
+
 from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister, IBMQ, Aer, transpile, execute
 from qiskit.circuit.library import XGate, ZGate, MCMT, MCMTVChain, Diagonal
 from qiskit_ibm_runtime import QiskitRuntimeService
@@ -39,26 +42,13 @@ from math import floor, sqrt, pi
 from typing import Callable
 
 
+
 ###########################################################################
 
 # Methods
 
 ###########################################################################
 
-def initialize_s(qc: QuantumCircuit, first: int, last: int):
-    """Apply a H-gate to 'qubits' in qc"""
-    for q in range(last - first):
-        qc.h(q + first)
-    return qc
-
-
-def reset_variables_circuit():
-    return 0
-
-
-def mesure_qubits(qc, nqubits):
-    for i in range(nqubits):
-        qc.measure(i, i)
 
 
 def args_to_toffoli(qc, variables,  clause, index):
@@ -66,6 +56,7 @@ def args_to_toffoli(qc, variables,  clause, index):
     print("variables: ", variables)
     toffoli_qubits = ""
     qubit_index = []
+    print("clause type: ",type( clause))
 
     if isinstance(clause, And):
         for i in clause.args:
@@ -76,7 +67,7 @@ def args_to_toffoli(qc, variables,  clause, index):
                 toffoli_qubits += "1"
                 qubit_index.append(variables.index(i))
         
-    if isinstance(clause, Or):
+    elif isinstance(clause, Or):
 
         for i in clause.args:
             if isinstance(i, Not):
@@ -87,7 +78,7 @@ def args_to_toffoli(qc, variables,  clause, index):
                 qubit_index.append(variables.index(i))
 
     else:
-        raise ValueError("Pincus")
+        raise ValueError("problem")
     
     qubit_index.append(index)
     print("toffoli_qubits: ", toffoli_qubits)
@@ -99,11 +90,12 @@ def args_to_toffoli(qc, variables,  clause, index):
 def cnf_to_oracle(logical_formula: And):
 
     print(logical_formula)
-    variables = logical_formula.atoms()
+    # variables = logical_formula.atoms()
+    variables = sorted(logical_formula.atoms(), key=lambda x: x.name)
     print("proposition values: ", variables, " of type: ", type(variables),  " of lenght: ", len(variables))
 
     variables_circuit = QuantumRegister(len(variables), "var_qubits")
-    clauses_circuit = QuantumRegister(len(variables), "anc_qubits")
+    clauses_circuit = QuantumRegister(len(logical_formula.args), "anc_qubits")
 
     qc = QuantumCircuit(variables_circuit, clauses_circuit)
 
@@ -122,15 +114,15 @@ def cnf_to_oracle(logical_formula: And):
     return oracle_gate
 
 
-def build_grover_circuit(gate, cnf_atoms, num_iters: int):
+def build_grover_circuit(gate, cnf, num_iters: int):
     
-    num_of_vars = len(cnf_atoms)
+    num_of_vars = len(cnf.atoms())
     variables_circuit = QuantumRegister(num_of_vars, name = "variables")
-    clauses_circuit = QuantumRegister(num_of_vars, name = "clauses")
+    clauses_circuit = QuantumRegister(len(cnf.args), name = "clauses")
     cr = ClassicalRegister(num_of_vars, name = "CR")
     qc = QuantumCircuit(variables_circuit, clauses_circuit, cr)
 
-    grover_circuit = initialize_s(qc, 0, variables_circuit.size)
+    grover_circuit = utils.initialize_s(qc, 0, variables_circuit.size)
 
     for i in range(num_iters):
         grover_circuit.append(gate, qc.qubits)
@@ -149,26 +141,16 @@ def build_grover_circuit(gate, cnf_atoms, num_iters: int):
 def build_diffuser(num_of_vars: int):
     qc = QuantumCircuit(num_of_vars)
 
-    # apply transformation |s> -> |00..0> (H-gates)
-    for qubit in range(num_of_vars):
-        qc.h(qubit)
-
-    # apply transformation |00..0> -> |11..1> (X-gates)
-    for qubit in range(num_of_vars):
-        qc.x(qubit)
+    qc.h(qc.qubits)
+    qc.x(qc.qubits)
 
     # simulate a multicontrolled z gate
     qc.h(num_of_vars-1)
     qc.mct(list(range(num_of_vars-1)), num_of_vars-1)  # did not find a way to do a multicontrolled z gate with a gate instruction (MCMT() is not a gate instruction)
     qc.h(num_of_vars-1)
 
-    # apply transformation |11..1> -> |00..0>
-    for qubit in range(num_of_vars):
-        qc.x(qubit)
-
-    # apply transformation |00..0> -> |s>
-    for qubit in range(num_of_vars):
-        qc.h(qubit)
+    qc.x(qc.qubits)
+    qc.h(qc.qubits)
 
     qc.draw("mpl")
 
@@ -184,12 +166,12 @@ def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Calla
     nb_iter = floor(pi/4 * sqrt(nb_qubits/nb_solution))
     nb_iter = 2
     print("num_iterations = ", nb_iter)
-    cnf_atoms = logical_formula.atoms()
+    cnf_atoms = sorted(logical_formula.atoms(), key=lambda x: x.name)
 
-    grover_circuit = build_grover_circuit(logical_formula_to_oracle, cnf_atoms, nb_iter)
+    grover_circuit = build_grover_circuit(logical_formula_to_oracle, logical_formula, nb_iter)
 
     # measurement
-    mesure_qubits(grover_circuit, len(logical_formula.atoms()))
+    utils.mesure_qubits(grover_circuit, len(logical_formula.atoms()))
 
     # Simulate and plot results
     transpiled_qc = transpile(grover_circuit, backend)
@@ -198,25 +180,12 @@ def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Calla
     results = list(job.result().get_counts().items())
     plot_histogram(job.result().get_counts())
 
-    print(results)
+    # print(results)
 
-
-
-    boolean_solutions = quantum_results_to_boolean(results)
+    boolean_solutions = utils.quantum_results_to_boolean(results, cnf_atoms)
 
     print(boolean_solutions)
+
     return results
 
 
-def quantum_results_to_boolean(results):
-
-    boolean_solutions = {}
-    threshold = 500
-    for i in results:
-        if i[1] > threshold:
-            boolean_solutions[i[0]] = True
-        else:
-            boolean_solutions[i[0]] = False
-
-
-    return boolean_solutions

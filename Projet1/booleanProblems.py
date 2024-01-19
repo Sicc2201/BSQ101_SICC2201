@@ -28,12 +28,12 @@ from sympy import symbols, to_cnf, Not
 
 
 def create_cake_problem():
-    Xa, Xb, Xc, Xd, Xe = symbols('Xa, Xb, Xc, Xd, Xe')
-    Pa = (~Xe & ~Xb) | (Xe & Xb)
-    Pb = (~Xc & Xe) | (Xc & ~Xe)
-    Pc = (~Xe & ~Xa) | (Xe & Xa)
-    Pd = (~Xc & Xb) | (Xc & ~Xb)
-    Pe = (~Xd & ~Xa) | (Xd & Xa)
+    Alan, Ben, Chris, Dave, Emma = symbols('Alan, Ben, Chris, Dave, Emma')
+    Pa = (~Emma & ~Ben) | (Emma & Ben)
+    Pb = (~Chris & Emma) | (Chris & ~Emma)
+    Pc = (~Emma & ~Alan) | (Emma & Alan)
+    Pd = (~Chris & Ben) | (Chris & ~Ben)
+    Pe = (~Dave & ~Alan) | (Dave & Alan)
 
     Pg = Pa & Pb & Pc & Pd & Pe
     cnf = to_cnf(Pg, True)
@@ -66,5 +66,5 @@ def create_pincus_problem():
     p7 = ~x1 & ~x4 & ~x3
 
     pg = p1 | p2 | p3 | p4 | p5 | p6 | p7
-    cnf = to_cnf(pg, True)
+    cnf = pg # to_cnf(pg, True)
     return cnf
