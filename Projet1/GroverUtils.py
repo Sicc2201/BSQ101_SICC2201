@@ -60,10 +60,9 @@ def mesure_qubits(qc, nqubits):
     for i in range(nqubits):
         qc.measure(i, i)
 
+
 def args_to_toffoli(qc, variables,  clause, index):
-    # registers = qc.qregs
-    # vreg = registers[0]
-    # areg = registers[1]
+
     print("variables: ", variables)
     toffoli_qubits = ""
     qubit_index = []
@@ -71,29 +70,30 @@ def args_to_toffoli(qc, variables,  clause, index):
     if isinstance(clause, And):
         for i in clause.args:
             if isinstance(i, Not):
-                toffoli_qubits += "1"
+                toffoli_qubits += "0"
                 qubit_index.append(variables.index(Not(i)))
             else:
-                toffoli_qubits += "0"
+                toffoli_qubits += "1"
                 qubit_index.append(variables.index(i))
         
     if isinstance(clause, Or):
         for i in clause.args:
             if isinstance(i, Not):
-                toffoli_qubits += "0"
+                toffoli_qubits += "1"
                 qubit_index.append(variables.index(Not(i)))
             else:
-                toffoli_qubits += "1"
+                toffoli_qubits += "0"
                 qubit_index.append(variables.index(i))
 
     else:
-        raise ValueError("The clause is not a valid one, it should be of type And or Or")
+        raise ValueError("Pincus")
     
     qubit_index.append(index)
     print("toffoli_qubits: ", toffoli_qubits)
     print("qubit index: ", qubit_index)
     toffoli_gate = XGate().control(len(toffoli_qubits), ctrl_state = toffoli_qubits)
     qc.append(toffoli_gate, qubit_index)
+
 
 def cnf_to_oracle(logical_formula: And):
 
@@ -112,8 +112,9 @@ def cnf_to_oracle(logical_formula: And):
         args_to_toffoli(qc, list(variables),  clause, i)
         if isinstance(clause, Or):
             qc.x(i)
-        print("*********************  gate applied to the circuit ************************")
+        print("*********************  oracle part " + str(i - len(variables)) + " ************************")
         i += 1
+
     qc.draw("mpl")
     oracle_gate = qc.to_gate()
     oracle_gate.name = "Oracle"
@@ -125,7 +126,6 @@ def build_grover_circuit(gate, num_of_vars: int, num_iters: int):
     variables_circuit = QuantumRegister(num_of_vars, name = "variables")
     clauses_circuit = QuantumRegister(num_of_vars, name = "clauses")
     cr = ClassicalRegister(num_of_vars, name = "CR")
-
     qc = QuantumCircuit(variables_circuit, clauses_circuit, cr)
 
     grover_circuit = initialize_s(qc, 0, variables_circuit.size)
@@ -133,16 +133,18 @@ def build_grover_circuit(gate, num_of_vars: int, num_iters: int):
     for i in range(num_iters):
         grover_circuit.append(gate, qc.qubits)
         grover_circuit.barrier()
-        # grover_circuit.append(MCMT("z", clauses_circuit.size - 1, 1), list(range(variables_circuit.size, 2 * clauses_circuit.size))) # apply multicontrolled z gate
+        grover_circuit.append(MCMT("z", clauses_circuit.size - 1, 1), list(range(variables_circuit.size, 2 * clauses_circuit.size))) # apply multicontrolled z gate
 
-        grover_circuit.h(clauses_circuit.size-1)
-        grover_circuit.mct(list(range(clauses_circuit.size-1)), clauses_circuit.size-1)  # did not find a way to do a multicontrolled z gate with a gate instruction (MCMT() is not a gate instruction)
-        grover_circuit.h(clauses_circuit.size-1)
+        # grover_circuit.h(clauses_circuit.size-1)
+        # grover_circuit.mct(list(range(clauses_circuit.size-1)), clauses_circuit.size-1)  # did not find a way to do a multicontrolled z gate with a gate instruction (MCMT() is not a gate instruction)
+        # grover_circuit.h(clauses_circuit.size-1)
 
         grover_circuit.barrier()
         grover_circuit.append(gate.inverse(), qc.qubits)
         grover_circuit.append(build_diffuser(variables_circuit.size), list(range(variables_circuit.size)))
         grover_circuit.barrier()
+
+    grover_circuit.draw("mpl")
         
     return grover_circuit
 
@@ -184,26 +186,23 @@ def build_diffuser(num_of_vars: int):
 
 def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Callable, backend):
 
-    nb_solution = 2
-    nb_iter = floor(pi/4 * sqrt(len(logical_formula.atoms())/nb_solution)) # if you know the number of solutions
-
-    oracle = logical_formula_to_oracle
-    grover_circuit = build_grover_circuit(oracle, len(logical_formula.atoms()), nb_iter)
+    nb_solution = 1
+    nb_qubits = len(logical_formula.atoms())
+    nb_iter = floor(pi/4 * sqrt(nb_qubits/nb_solution))
+    nb_iter = 3
+    print("num_iterations = ", nb_iter)
+    grover_circuit = build_grover_circuit(logical_formula_to_oracle, len(logical_formula.atoms()), nb_iter)
 
     # measurement
-    print("num_qubits = ", len(logical_formula.atoms()))
-    print("num_iterations = ", len(logical_formula.atoms()))
-    mesure_qubits(grover_circuit, nb_iter)
- 
-    grover_circuit.draw("mpl") # draw grover
+    mesure_qubits(grover_circuit, len(logical_formula.atoms()))
 
     # Simulate and plot results
     transpiled_qc = transpile(grover_circuit, backend)
-    # transpiled_qc.draw("mpl")
     job = backend.run(transpiled_qc)
 
     results = list(job.result().get_counts().items())
-    # plot_histogram(job.result().get_counts())
+    plot_histogram(job.result().get_counts())
 
     # result = {0:0}
-    return transpiled_qc, results
+    print(results)
+    return results

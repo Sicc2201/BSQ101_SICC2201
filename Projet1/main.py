@@ -38,7 +38,7 @@ def main():
     ibmq_token = "put your token here"
     backend_name = "ibmq_qasm_simulator"
 
-    ####  uncomment if this is the first time you connect to your account  ##########
+    ####  uncomment if this is the first time you connect to your IBMQ account  ##########
 
     # IBMQ_credentials.ibmq_connexion(ibmq_token)
 
@@ -49,9 +49,8 @@ def main():
     cnf_cake = bool.create_cake_problem()
     cnf_pincus = bool.create_pincus_problem()
 
-    qc, result = grover.solve_sat_with_grover(cnf_cake, grover.cnf_to_oracle(cnf_cake), backend)
-    print(result)
-    
+    cake_result = grover.solve_sat_with_grover(cnf_cake, grover.cnf_to_oracle(cnf_cake), backend)
+    # pincus_result = grover.solve_sat_with_grover(cnf_pincus, grover.cnf_to_oracle(cnf_pincus), backend)
     plt.show()
 
     return 0

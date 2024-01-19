@@ -30,16 +30,14 @@ from sympy import symbols, to_cnf, Not
 def create_cake_problem():
     Xa, Xb, Xc, Xd, Xe = symbols('Xa, Xb, Xc, Xd, Xe')
     Pa = (~Xe & ~Xb) | (Xe & Xb)
-    Pb = (~Xc & ~Xe) | (Xc & Xe)
+    Pb = (~Xc & Xe) | (Xc & ~Xe)
     Pc = (~Xe & ~Xa) | (Xe & Xa)
-    Pd = (~Xc & ~Xb) | (Xc & Xb)
+    Pd = (~Xc & Xb) | (Xc & ~Xb)
     Pe = (~Xd & ~Xa) | (Xd & Xa)
 
     Pg = Pa & Pb & Pc & Pd & Pe
     cnf = to_cnf(Pg, True)
 
-    # filter out all clauses that contains a litteral and its negation ex: (Xa | ~Xa)
-    # filtered_cnf = [clause for clause in cnf.args if not any(isinstance(arg, Not) and arg.args[0] == arg2 for arg in clause.args for arg2 in clause.args)]
     return cnf
 
 def create_pincus_problem():
@@ -67,6 +65,6 @@ def create_pincus_problem():
     p7 = x1 & x4 >> ~x3
     p7 = ~x1 & ~x4 & ~x3
 
-    pg = p1 & p2 & p3 & p4 & p5 & p6 & p7
+    pg = p1 | p2 | p3 | p4 | p5 | p6 | p7
     cnf = to_cnf(pg, True)
     return cnf
