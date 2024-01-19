@@ -77,6 +77,7 @@ def args_to_toffoli(qc, variables,  clause, index):
                 qubit_index.append(variables.index(i))
         
     if isinstance(clause, Or):
+
         for i in clause.args:
             if isinstance(i, Not):
                 toffoli_qubits += "1"
@@ -91,7 +92,7 @@ def args_to_toffoli(qc, variables,  clause, index):
     qubit_index.append(index)
     print("toffoli_qubits: ", toffoli_qubits)
     print("qubit index: ", qubit_index)
-    toffoli_gate = XGate().control(len(toffoli_qubits), ctrl_state = toffoli_qubits)
+    toffoli_gate = XGate().control(len(toffoli_qubits), ctrl_state = toffoli_qubits[::-1])
     qc.append(toffoli_gate, qubit_index)
 
 
@@ -121,8 +122,9 @@ def cnf_to_oracle(logical_formula: And):
     return oracle_gate
 
 
-def build_grover_circuit(gate, num_of_vars: int, num_iters: int):
+def build_grover_circuit(gate, cnf_atoms, num_iters: int):
     
+    num_of_vars = len(cnf_atoms)
     variables_circuit = QuantumRegister(num_of_vars, name = "variables")
     clauses_circuit = QuantumRegister(num_of_vars, name = "clauses")
     cr = ClassicalRegister(num_of_vars, name = "CR")
@@ -134,11 +136,6 @@ def build_grover_circuit(gate, num_of_vars: int, num_iters: int):
         grover_circuit.append(gate, qc.qubits)
         grover_circuit.barrier()
         grover_circuit.append(MCMT("z", clauses_circuit.size - 1, 1), list(range(variables_circuit.size, 2 * clauses_circuit.size))) # apply multicontrolled z gate
-
-        # grover_circuit.h(clauses_circuit.size-1)
-        # grover_circuit.mct(list(range(clauses_circuit.size-1)), clauses_circuit.size-1)  # did not find a way to do a multicontrolled z gate with a gate instruction (MCMT() is not a gate instruction)
-        # grover_circuit.h(clauses_circuit.size-1)
-
         grover_circuit.barrier()
         grover_circuit.append(gate.inverse(), qc.qubits)
         grover_circuit.append(build_diffuser(variables_circuit.size), list(range(variables_circuit.size)))
@@ -148,10 +145,6 @@ def build_grover_circuit(gate, num_of_vars: int, num_iters: int):
         
     return grover_circuit
 
-
-    # *************************
-    # TO CHECK
-    # **************************
 
 def build_diffuser(num_of_vars: int):
     qc = QuantumCircuit(num_of_vars)
@@ -189,9 +182,11 @@ def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Calla
     nb_solution = 1
     nb_qubits = len(logical_formula.atoms())
     nb_iter = floor(pi/4 * sqrt(nb_qubits/nb_solution))
-    nb_iter = 3
+    nb_iter = 2
     print("num_iterations = ", nb_iter)
-    grover_circuit = build_grover_circuit(logical_formula_to_oracle, len(logical_formula.atoms()), nb_iter)
+    cnf_atoms = logical_formula.atoms()
+
+    grover_circuit = build_grover_circuit(logical_formula_to_oracle, cnf_atoms, nb_iter)
 
     # measurement
     mesure_qubits(grover_circuit, len(logical_formula.atoms()))
@@ -203,6 +198,25 @@ def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Calla
     results = list(job.result().get_counts().items())
     plot_histogram(job.result().get_counts())
 
-    # result = {0:0}
     print(results)
+
+
+
+    boolean_solutions = quantum_results_to_boolean(results)
+
+    print(boolean_solutions)
     return results
+
+
+def quantum_results_to_boolean(results):
+
+    boolean_solutions = {}
+    threshold = 500
+    for i in results:
+        if i[1] > threshold:
+            boolean_solutions[i[0]] = True
+        else:
+            boolean_solutions[i[0]] = False
+
+
+    return boolean_solutions
