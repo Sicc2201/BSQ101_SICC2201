@@ -2,7 +2,7 @@
 
 # Titre: QuantumUtils.py
 # Author: Christopher Sicotte (SICC2201)
-# last modified: 19/01/2024
+# last modified: 21/01/2024
 
 ##########################################################################
 '''
@@ -13,7 +13,13 @@ This file contains all general methods that needs to be called to create the cir
 
 # Methods:
 
+- initialize_s(qc: QuantumCircuit, first: int, last: int) : 
 
+- mesure_qubits(qc, nqubits) : Mesures the qubits on a quantum circuit from a starting point to an end point.
+
+- quantum_results_to_boolean(results: list, atoms: list) : Converts the results from the quantum operation to an easy to understand format.
+
+- calculate_threshold(results: list) : Calculates the threshold to separate the True and False clusters in the data with a K-means.
 
 '''
 
@@ -40,12 +46,12 @@ def initialize_s(qc: QuantumCircuit, first: int, last: int):
     return qc
 
 
-def mesure_qubits(qc, nqubits):
+def mesure_qubits(qc: QuantumCircuit, nqubits: int):
     for i in range(nqubits):
         qc.measure(i, i)
 
 
-def quantum_results_to_boolean(results, atoms: list):
+def quantum_results_to_boolean(results: list, atoms: list):
 
     boolean_solutions = {}
     threshold = calculate_threshold(results)
@@ -63,12 +69,12 @@ def quantum_results_to_boolean(results, atoms: list):
                     culprits.append(atoms[index])
                 boolean_solutions[tuple(culprits)] = True
             else:
-                raise ValueError("Ther is no solution")
+                raise ValueError("There is no solution")
 
     return boolean_solutions
 
 
-def calculate_threshold(results):
+def calculate_threshold(results: list):
     # nb_cluster = 2
     # kmeans = KMeans(nb_cluster)
     # kmeans.fit([t[1] for t in results])

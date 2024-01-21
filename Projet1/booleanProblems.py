@@ -2,7 +2,7 @@
 
 # Titre: BooleanProblems.py
 # Author: Christopher Sicotte (SICC2201)
-# last modified: 09/01/2024
+# last modified: 21/01/2024
 
 ##########################################################################
 '''
@@ -13,8 +13,9 @@ This is where you put the problems propositions.
 
 # methods:
 
-create_cake_problem() -> cnf : create the cnf of the cake problem in the project1.
-create_pincus_problem() -> cnf : create the cnf of the Pincus planet problem in the project1.
+- create_cake_problem() -> cnf : Creates the cnf of the cake problem in the project1.
+
+- create_pincus_problem() -> cnf : Creates the cnf of the Pincus planet problem in the project1.
 
 '''
 
