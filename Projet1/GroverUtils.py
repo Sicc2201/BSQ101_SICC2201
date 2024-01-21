@@ -13,13 +13,15 @@ This file contains all the methods that we need to run a full Grover algorithm g
 
 # Methods:
 
+args_to_toffoli(qc: QuantumCircuit, variables: list[symbols],  proposition, index: int) : Method that build toffoli gates from propositions to append in the global quantum circuit.
+
 cnf_to_oracle(logical_formula: And) -> Gate : Method that translates a normal conjunctive logical formula into an oracle that takes the form of a quantum gate.
 
 build_diffuser(num_of_vars: int) -> Gate : Method that build the diffuser depending on the number of input qubits.
 
-build_grover_circuit(oracle: Gate, num_of_vars: int, num_iters: int) -> Gate : Method that build the Grover algorithm from the inputs.
+build_grover_circuit(oracle: Gate, cnf: And, num_iters: int) -> Gate : Method that build the Grover algorithm from the inputs.
 
-solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Callable, backend: Backend) ->  List[dict]: Given a logical formula, a method to convert
+solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Callable, backend: Backend) ->  dict{string:bool}: Given a logical formula, a method to convert
  this formula into an oracle, and a backend on which to execute a quantum circuit.
 
 '''
@@ -50,26 +52,27 @@ from typing import Callable
 ###########################################################################
 
 
-
-def args_to_toffoli(qc, variables,  clause, index):
+def args_to_toffoli(qc: QuantumCircuit, variables: list,  proposition, index: int):
 
     print("variables: ", variables)
     toffoli_qubits = ""
     qubit_index = []
-    print("clause type: ",type( clause))
+    print("proposition type: ",type( proposition))
 
-    if isinstance(clause, And):
-        for i in clause.args:
+    # Pincus
+    if isinstance(proposition, And):
+        for i in proposition.args:
             if isinstance(i, Not):
                 toffoli_qubits += "0"
                 qubit_index.append(variables.index(Not(i)))
             else:
                 toffoli_qubits += "1"
                 qubit_index.append(variables.index(i))
-        
-    elif isinstance(clause, Or):
+    
+    # Cake problem
+    elif isinstance(proposition, Or):
 
-        for i in clause.args:
+        for i in proposition.args:
             if isinstance(i, Not):
                 toffoli_qubits += "1"
                 qubit_index.append(variables.index(Not(i)))
@@ -90,7 +93,6 @@ def args_to_toffoli(qc, variables,  clause, index):
 def cnf_to_oracle(logical_formula: And):
 
     print(logical_formula)
-    # variables = logical_formula.atoms()
     variables = sorted(logical_formula.atoms(), key=lambda x: x.name)
     print("proposition values: ", variables, " of type: ", type(variables),  " of lenght: ", len(variables))
 
@@ -186,6 +188,6 @@ def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Calla
 
     print(boolean_solutions)
 
-    return results
+    return boolean_solutions
 
 
