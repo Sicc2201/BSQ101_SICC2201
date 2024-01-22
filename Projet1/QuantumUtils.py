@@ -39,18 +39,29 @@ from qiskit import QuantumCircuit
 
 ###########################################################################
 
+"""Commentaires
+Est-ce que c'est plus clean que juste
+    qc.h(range(last - first))
+? Est-ce que ça vaut une fonction?
+"""
 def initialize_s(qc: QuantumCircuit, first: int, last: int):
     """Apply a H-gate to 'qubits' in qc"""
     for q in range(last - first):
         qc.h(q + first)
     return qc
 
-
+"""Commentaires
+Même chose ici. Cela pourrait se faire en une ligne dans le fichier de Grover
+"""
 def mesure_qubits(qc: QuantumCircuit, nqubits: int):
     for i in range(nqubits):
         qc.measure(i, i)
 
-
+"""Commentaires
+Ce n'est pas clair ici que results est une list de tuple. Ça rend le code difficile à comprend au début.
+Cette fontion devrait retourner une list de dict. Chaque dict est une solution.
+Les keys sont les variables (atoms) et les value True/False.
+"""
 def quantum_results_to_boolean(results: list, atoms: list):
 
     boolean_solutions = {}
@@ -73,7 +84,9 @@ def quantum_results_to_boolean(results: list, atoms: list):
 
     return boolean_solutions
 
-
+"""Commentaires
+Bonne idée qui reste a être implémentée
+"""
 def calculate_threshold(results: list):
     # nb_cluster = 2
     # kmeans = KMeans(nb_cluster)
@@ -84,3 +97,5 @@ def calculate_threshold(results: list):
     threshold = 500
     print("threshold: ", threshold)
     return threshold
+
+""" La convention des noms de fichier n'est pas claire. """
