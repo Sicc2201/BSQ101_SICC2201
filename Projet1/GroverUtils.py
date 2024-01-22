@@ -51,7 +51,18 @@ from typing import Callable
 
 ###########################################################################
 
+"""Commentaires
+Une porte Toffoli est spécifique au CCX. 
+Ici il s'agit de multi-contrôle avec une nombre arbitraire de qubits de control.
 
+Le problème de Pincus et du Cake devrait avoir la même forme. Pas de if nécessaire.
+
+Je te suggère de rendre cette fonction spécifique à une disjonction.
+Donc le nom de la fonction est à changer. Suggestion : "disjonction_t0_gate"?
+
+C'est une mauvaise pratique de modifier un argument de la fonction sauf si vraiment plus performant.
+Ici je te suggère de retourner la porte et qubit_index et l'ajouter au circuit dans cnf_to_oracle.
+"""
 def args_to_toffoli(qc: QuantumCircuit, variables: list,  proposition, index: int):
 
     print("variables: ", variables)
@@ -89,7 +100,16 @@ def args_to_toffoli(qc: QuantumCircuit, variables: list,  proposition, index: in
     toffoli_gate = XGate().control(len(toffoli_qubits), ctrl_state = toffoli_qubits[::-1]) # [::-1] inverse the string to respect little endian
     qc.append(toffoli_gate, qubit_index)
 
-
+"""Commentaires
+Type hint pour le retour.
+Cette fonction ne retourne pas vraiment l'oracle, mais seulement la première partie avant le MCZ.
+Je garderais cette fonction avec un autre nom.
+Je ferrais une nouvelle fonction cnf_to_oracle qui appelle celle-ci, ajoute le MCZ et applique l'inverse.
+Voir les commentaires de la fonction précédente.
+Enlève les print et le draw.
+Les commentaires ne sont pas indispensables. Le code se comprend assez bien.
+Tu peut spécifier le nom de ta gate avec `oracle_gate = qc.to_gate(name = "Oracle")`
+"""
 def cnf_to_oracle(logical_formula: And):
 
     print(logical_formula)
@@ -121,6 +141,16 @@ def cnf_to_oracle(logical_formula: And):
     oracle_gate.name = "Oracle"
     return oracle_gate
 
+"""Commentaires
+Il manque des types hints.
+Type hint pour le retour.
+Je ne suis pas sûr de comprendre ton commentaire.
+Tu dois fournir le nombre de qubit de variable pour savoir la taille du diffuseur.
+L'utilisation de MCMT n'est pas nécessaire et ce type de porte est exponentiellement couteuse.
+Utilise plus tôt MCZ = ZGate().control(...).
+Comme dit plus tôt, l'application du MCZ devrait être dans cnf_to_oracle.
+Évite d'appeler `build_diffuser` à chaque itération. Une fois au début en ensuite append. Même chose pour l'oracle.
+"""
 # in this methods i have a "cnf" in parameter because, for pincus, the size of the atoms != the size of the clauses, so i need to differentiate them in my registers
 def build_grover_circuit(gate, cnf, num_iters: int):
     
@@ -149,7 +179,10 @@ def build_grover_circuit(gate, cnf, num_iters: int):
         
     return grover_circuit
 
-
+"""Commentaires
+Même commentaire pour le MCZ, utilise ZGate().control().
+Type hint pour le retour.
+"""
 def build_diffuser(num_of_vars: int):
     qc = QuantumCircuit(num_of_vars)
 
@@ -171,7 +204,17 @@ def build_diffuser(num_of_vars: int):
     U_s.name = "Diffuser"
     return U_s
 
-
+"""Comentaires 
+Il manque le type hint pour backend et le type hint pour le retour.
+À quoi sert `nb_solution`?
+Je ne crois pas que ce soit nécessaire d'avoir une fonction `mesure_qubits` dans utils. Je verrai quand je regarderai ce fichier.
+Pas de print et pas pas afficher d'histogramme ici. 
+Une manière de pouvoir faire un histogramme avec une bonne structure serait d'avoir une fonction qui execute le circuit grover
+et extrait les résultats. Cette fonction serait appelée dans `solve_sat_with_grover`. L'utilisateur pourrait utiliser séparément
+pour générer un histogramme.
+La method `quantum_results_to_boolean` semble assez spécifique à la solution de SAT avec grover pour se retrouver ici, mais je peux me tromper.
+Je vais aller voir si cette fonction retourne le bon type.
+"""
 def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Callable, backend):
 
     nb_solution = 1
