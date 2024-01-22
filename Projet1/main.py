@@ -32,7 +32,12 @@ import matplotlib.pyplot as plt
 
 ###########################################################################
 
-
+"""Commentaires
+Il faudrait valider que la solution est la bonne. Si le format d'une solution est bien un dict on peut simplement faire
+    cnf_cake.subs(solution)
+Peut-être solutionner les deux problèmes un à la suite de l'autre?
+C'est le bon endroit pour afficher des histogrammes et autre.
+"""
 def main():
 
     ibmq_token = "put your token here"
