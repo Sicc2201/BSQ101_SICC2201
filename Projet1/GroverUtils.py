@@ -213,7 +213,7 @@ Une manière de pouvoir faire un histogramme avec une bonne structure serait d'a
 et extrait les résultats. Cette fonction serait appelée dans `solve_sat_with_grover`. L'utilisateur pourrait utiliser séparément
 pour générer un histogramme.
 La method `quantum_results_to_boolean` semble assez spécifique à la solution de SAT avec grover pour se retrouver ici, mais je peux me tromper.
-Je vais aller voir si cette fonction retourne le bon type.
+Pourquoi transmettre counts.items() a la fonction quantum_results_to_boolean au lieu de juste counts?
 """
 def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Callable, backend):
 
