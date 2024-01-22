@@ -25,6 +25,9 @@ This is where you put the problems propositions.
 
 ###########################################################################
 
+"""Commentaires
+Je crois que tu importes Not et que tu ne t'en sers pas.
+"""
 from sympy import symbols, to_cnf, Not
 
 
@@ -41,6 +44,12 @@ def create_cake_problem():
 
     return cnf
 
+"""Commentaires
+Une forme normale conjonctive est une conjonction de disjonction. 
+La fonction `create_pincus_problem` retourne une disjonction de conjonctions.
+Il y a un problème dans la construction.
+Évite de définir chacune de proposition 2 fois. Je comprend que c'est utile pour tester au début, mais assure-toi de faire le ménage ensuite.
+"""
 def create_pincus_problem():
         
     x1, x2, x3, x4 = symbols('x1, x2, x3, x4')
