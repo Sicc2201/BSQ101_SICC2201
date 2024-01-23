@@ -130,18 +130,19 @@ def build_grover_circuit(gate, cnf, num_iters: int):
     variables_circuit = QuantumRegister(num_of_vars, name = "variables")
     clauses_circuit = QuantumRegister(len(cnf.args), name = "clauses")
     cr = ClassicalRegister(num_of_vars, name = "CR")
-    qc = QuantumCircuit(variables_circuit, clauses_circuit, cr)
+    grover_circuit = QuantumCircuit(variables_circuit, clauses_circuit, cr)
 
     # initialize circuit |s> state
-    grover_circuit = utils.initialize_s(qc, 0, variables_circuit.size) 
+    # grover_circuit = utils.initialize_s(qc, 0, variables_circuit.size) 
+    grover_circuit.h(range(variables_circuit.size))
 
-    # apply num_iters times the oracle, a mulicontrolled-Z gate, the inversse oracle and the diffuser
+    # apply num_iters times the oracle, a multicontrolled-Z gate, the inversse oracle and the diffuser
     for i in range(num_iters):
-        grover_circuit.append(gate, qc.qubits)
+        grover_circuit.append(gate, grover_circuit.qubits)
         grover_circuit.barrier()
         grover_circuit.append(MCMT("z", clauses_circuit.size - 1, 1), list(range(variables_circuit.size, 2 * clauses_circuit.size))) # apply multicontrolled z gate
         grover_circuit.barrier()
-        grover_circuit.append(gate.inverse(), qc.qubits)
+        grover_circuit.append(gate.inverse(), grover_circuit.qubits)
         grover_circuit.append(build_diffuser(variables_circuit.size), list(range(variables_circuit.size)))
         grover_circuit.barrier()
 
@@ -192,7 +193,7 @@ def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Calla
     grover_circuit = build_grover_circuit(logical_formula_to_oracle, logical_formula, nb_iter)
 
     # measurement
-    utils.mesure_qubits(grover_circuit, len(logical_formula.atoms()))
+    grover_circuit.measure(range(nb_qubits), range(nb_qubits))
 
     # Simulate and plot results
     transpiled_qc = transpile(grover_circuit, backend)

@@ -66,6 +66,6 @@ def create_pincus_problem():
     p7 = x1 & x4 >> ~x3
     p7 = ~x1 & ~x4 & ~x3
 
-    pg = p1 | p2 | p3 | p4 | p5 | p6 | p7
+    pg = p1 & p2 & p3 & p4 & p5 & p6 & p7
     cnf = pg # to_cnf(pg, True)
     return cnf

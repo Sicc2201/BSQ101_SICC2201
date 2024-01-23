@@ -1,3 +1,6 @@
 qiskit
 qiskit-ibm-runtime
 qiskit[visualization]
+scikit-learn
+matplotlib
+sympy
