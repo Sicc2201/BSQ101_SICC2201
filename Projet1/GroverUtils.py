@@ -2,7 +2,7 @@
 
 # Titre: GroverUtils.py
 # Author: Christopher Sicotte (SICC2201)
-# last modified: 21/01/2024
+# last modified: 23/01/2024
 
 ##########################################################################
 '''
@@ -34,14 +34,13 @@ This file contains all the methods that we need to run a full Grover algorithm g
 
 import QuantumUtils as utils
 
-from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister, IBMQ, Aer, transpile, execute
-from qiskit.circuit.library import XGate, ZGate, MCMT, MCMTVChain, Diagonal
-from qiskit_ibm_runtime import QiskitRuntimeService
-from qiskit.visualization import plot_histogram, array_to_latex, plot_gate_map
-from sympy import symbols, Implies, Not, And, Or, to_cnf
+from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister, transpile
+from qiskit.circuit import Gate
+from qiskit.circuit.library import XGate, ZGate, CCXGate
+from sympy import Not, And, Or
 from math import floor, sqrt, pi
 
-from typing import Callable
+from typing import Callable, Tuple
 
 
 
@@ -52,52 +51,32 @@ from typing import Callable
 ###########################################################################
 
 
-def args_to_toffoli(qc: QuantumCircuit, variables: list,  proposition, index: int):
+def disjonction_gate(qc: QuantumCircuit, variables: list,  proposition: Or, index: int) -> Tuple[CCXGate, str]:
 
     print("variables: ", variables)
     toffoli_qubits = ""
     qubit_index = []
-    print("proposition type: ",type( proposition))
 
-    # Pincus
-    if isinstance(proposition, And):
-        for i in proposition.args:
-            if isinstance(i, Not):
-                toffoli_qubits += "0"
-                qubit_index.append(variables.index(Not(i)))
-            else:
-                toffoli_qubits += "1"
-                qubit_index.append(variables.index(i))
-    
-    # Cake problem
-    elif isinstance(proposition, Or):
+    for i in proposition.args:
+        if isinstance(i, Not):
+            toffoli_qubits += "1"
+            qubit_index.append(variables.index(Not(i)))
+        else:
+            toffoli_qubits += "0"
+            qubit_index.append(variables.index(i))
 
-        for i in proposition.args:
-            if isinstance(i, Not):
-                toffoli_qubits += "1"
-                qubit_index.append(variables.index(Not(i)))
-            else:
-                toffoli_qubits += "0"
-                qubit_index.append(variables.index(i))
-
-    else:
-        raise ValueError("problem")
-    
     qubit_index.append(index)
-    print("toffoli_qubits: ", toffoli_qubits)
-    print("qubit index: ", qubit_index)
     toffoli_gate = XGate().control(len(toffoli_qubits), ctrl_state = toffoli_qubits[::-1]) # [::-1] inverse the string to respect little endian
-    qc.append(toffoli_gate, qubit_index)
+
+    return toffoli_gate, qubit_index
 
 
-def cnf_to_oracle(logical_formula: And):
+def create_oracle_gates(logical_formula: And) -> Gate:
 
-    print(logical_formula)
+    print("cnf: ", logical_formula, "\n")
     # sort the proposition atoms
     variables = sorted(logical_formula.atoms(), key=lambda x: x.name)
-    # print("proposition values: ", variables, " of type: ", type(variables),  " of lenght: ", len(variables))
 
-    # create a circuit with 2 registers
     variables_circuit = QuantumRegister(len(variables), "var_qubits")
     clauses_circuit = QuantumRegister(len(logical_formula.args), "anc_qubits")
     qc = QuantumCircuit(variables_circuit, clauses_circuit)
@@ -105,109 +84,108 @@ def cnf_to_oracle(logical_formula: And):
     # Apply the right toffoli gate to the circuit
     i = len(variables)
     for clause in logical_formula.args:
-        print("clause", clause)
-        args_to_toffoli(qc, list(variables),  clause, i) 
 
+        print("*********************  oracle part " + str(i - len(variables)) + " ************************")
+        print("clause: ", clause)
+        toffoli_gate, qubit_index = disjonction_gate(qc, list(variables),  clause, i) 
+        qc.append(toffoli_gate, qubit_index)
         if isinstance(clause, Or): # if the proposition is a OR, add an X gate
             qc.x(i)
 
-        print("*********************  oracle part " + str(i - len(variables)) + " ************************")
         i += 1
-
-    qc.draw("mpl")
 
     # create the oracle gate
     oracle_gate = qc.to_gate()
     oracle_gate.name = "Oracle"
     return oracle_gate
 
-# in this methods i have a "cnf" in parameter because, for pincus, the size of the atoms != the size of the clauses, so i need to differentiate them in my registers
-def build_grover_circuit(gate, cnf, num_iters: int):
-    
-    num_of_vars = len(cnf.atoms())
+
+def cnf_to_oracle(logical_formula: And) -> Gate:
+
+    num_vars = len(logical_formula.atoms())
+    num_clauses = len(logical_formula.args)
+
+    variables_circuit = QuantumRegister(num_vars, name = "variables")
+    clauses_circuit = QuantumRegister(num_clauses, name = "clauses")
+    qc = QuantumCircuit(variables_circuit, clauses_circuit)
+
+    gate = create_oracle_gates(logical_formula)
+    z_gate = ZGate().control(num_clauses - 1)
+    diffuser = build_diffuser(num_vars)
+
+    qc.append(gate, qc.qubits)
+    qc.append(z_gate, range(num_vars, qc.num_qubits))
+    qc.append(gate.inverse(), qc.qubits)
+    qc.append(diffuser, range(num_vars))
+
+    # create the oracle gate
+    oracle_gate = qc.to_gate()
+    oracle_gate.name = "Oracle"
+    return oracle_gate
+
+
+def build_grover_circuit(oracle: Gate, num_of_vars: int, num_iters: int) -> QuantumCircuit:
 
     # create the global circuit
     variables_circuit = QuantumRegister(num_of_vars, name = "variables")
-    clauses_circuit = QuantumRegister(len(cnf.args), name = "clauses")
+    clauses_circuit = QuantumRegister(oracle.num_qubits - num_of_vars, name = "clauses")
     cr = ClassicalRegister(num_of_vars, name = "CR")
     grover_circuit = QuantumCircuit(variables_circuit, clauses_circuit, cr)
 
-    # initialize circuit |s> state
-    # grover_circuit = utils.initialize_s(qc, 0, variables_circuit.size) 
+    # initialize circuit |s> state 
     grover_circuit.h(range(variables_circuit.size))
 
-    # apply num_iters times the oracle, a multicontrolled-Z gate, the inversse oracle and the diffuser
     for i in range(num_iters):
-        grover_circuit.append(gate, grover_circuit.qubits)
-        grover_circuit.barrier()
-        grover_circuit.append(MCMT("z", clauses_circuit.size - 1, 1), list(range(variables_circuit.size, 2 * clauses_circuit.size))) # apply multicontrolled z gate
-        grover_circuit.barrier()
-        grover_circuit.append(gate.inverse(), grover_circuit.qubits)
-        grover_circuit.append(build_diffuser(variables_circuit.size), list(range(variables_circuit.size)))
-        grover_circuit.barrier()
-
-    grover_circuit.draw("mpl")
+        grover_circuit.append(oracle, grover_circuit.qubits)
         
     return grover_circuit
 
 
-def build_diffuser(num_of_vars: int):
+def build_diffuser(num_of_vars: int) -> Gate:
     qc = QuantumCircuit(num_of_vars)
 
     qc.h(qc.qubits)
     qc.x(qc.qubits)
-
-    # simulate a multicontrolled z gate
-    qc.h(num_of_vars-1)
-    qc.mct(list(range(num_of_vars-1)), num_of_vars-1)  # did not find a way to do a multicontrolled z gate with a gate instruction (MCMT() is not a gate instruction)
-    qc.h(num_of_vars-1)
-
+    qc.append(ZGate().control(num_of_vars - 1), range(num_of_vars))
     qc.x(qc.qubits)
     qc.h(qc.qubits)
 
-    qc.draw("mpl")
-
-    # create the gate
     U_s = qc.to_gate()
     U_s.name = "Diffuser"
     return U_s
 
 
-def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Callable, backend):
+def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Callable, backend, save_histogram: bool = False, histogram_title: str = "histogram") -> list[dict]:
+
+    # sort the proposition atoms
+    cnf_atoms = sorted(logical_formula.atoms(), key=lambda x: x.name)
+    nb_vars = len(cnf_atoms)
 
     nb_solution = 1
-    nb_qubits = len(logical_formula.atoms())
+    nb_iter = floor(pi/4 * sqrt(nb_vars/nb_solution))
+    nb_iter = 2  
+    print("num_iterations = ", nb_iter)  
 
-    # ******************************************************
-    # the ideal num of iterations is supposeed to be
-    # nb_iter = floor(pi/4 * sqrt(nb_qubits/nb_solution))
-    # but it does not work. So in the meantime i harcoded 2 since its the best.
-    nb_iter = 2
-    # *******************************************************
-
-    print("num_iterations = ", nb_iter)
-    # sort the proposition atoms
-    cnf_atoms = sorted(logical_formula.atoms(), key=lambda x: x.name) 
-
-    # build quantum circuit
-    grover_circuit = build_grover_circuit(logical_formula_to_oracle, logical_formula, nb_iter)
+    grover_circuit = build_grover_circuit(logical_formula_to_oracle, nb_vars, nb_iter)
 
     # measurement
-    grover_circuit.measure(range(nb_qubits), range(nb_qubits))
+    grover_circuit.measure(range(nb_vars), range(nb_vars))
 
     # Simulate and plot results
     transpiled_qc = transpile(grover_circuit, backend)
     job = backend.run(transpiled_qc)
-    results = list(job.result().get_counts().items())
-    plot_histogram(job.result().get_counts())
-
-    # print(results)
+    results = job.result().get_counts()
 
     # convert results in an easy to understand format
     boolean_solutions = utils.quantum_results_to_boolean(results, cnf_atoms)
 
-    print(boolean_solutions)
+    if save_histogram:
+        utils.save_histogram_png(results, histogram_title)
+
 
     return boolean_solutions
 
 
+def validate_grover_solutions(results, cnf):
+    for result in results:
+        print(cnf.subs(result))

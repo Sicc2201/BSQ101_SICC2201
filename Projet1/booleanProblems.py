@@ -2,7 +2,7 @@
 
 # Titre: BooleanProblems.py
 # Author: Christopher Sicotte (SICC2201)
-# last modified: 21/01/2024
+# last modified: 23/01/2024
 
 ##########################################################################
 '''
@@ -25,10 +25,9 @@ This is where you put the problems propositions.
 
 ###########################################################################
 
-from sympy import symbols, to_cnf, Not
+from sympy import symbols, to_cnf, And
 
-
-def create_cake_problem():
+def create_cake_problem() -> And:
     Alan, Ben, Chris, Dave, Emma = symbols('Alan, Ben, Chris, Dave, Emma')
     Pa = (~Emma & ~Ben) | (Emma & Ben)
     Pb = (~Chris & Emma) | (Chris & ~Emma)
@@ -41,31 +40,23 @@ def create_cake_problem():
 
     return cnf
 
-def create_pincus_problem():
+def create_pincus_problem() -> And:
         
-    x1, x2, x3, x4 = symbols('x1, x2, x3, x4')
+    Peur, Joie, Malade, Bruyant = symbols('Peur, Joie, Malade, Bruyant')
 
-    p1 = ~x3 & ~x1 >> x4
-    p1 = x3 & x1 & x4
+    p1 = Malade | Peur | Bruyant
 
-    p2 = x1 & ~x4 >> x2
-    p2 = ~x1 & x4 & x2
+    p2 = ~Peur | Bruyant | Joie
 
-    p3 = ~x3 & x4 >> x2
-    p3 = x3 & ~x4 & x2
+    p3 = Malade | ~Bruyant | Joie
 
-    p4 = x2 & ~x4 >> ~x3
-    p4 = ~x2 & x4 & ~x3
+    p4 = ~Joie | Bruyant | ~Malade
 
-    p5 = x1 & ~x3 >> ~x2
-    p5 = ~x1 & x3 & ~x2
+    p5 = ~Peur | Malade | ~Joie
 
-    p6 = ~x2 & x3 >> x1
-    p6 = x2 & ~x3 & x1
+    p6 = Joie | ~Malade | Peur
 
-    p7 = x1 & x4 >> ~x3
-    p7 = ~x1 & ~x4 & ~x3
+    p7 = ~Peur | ~Bruyant | ~Malade
 
-    pg = p1 & p2 & p3 & p4 & p5 & p6 & p7
-    cnf = pg # to_cnf(pg, True)
+    cnf = p1 & p2 & p3 & p4 & p5 & p6 & p7
     return cnf
