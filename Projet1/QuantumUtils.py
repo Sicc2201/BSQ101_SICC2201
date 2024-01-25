@@ -29,6 +29,7 @@ This file contains all general methods that needs to be called to create the cir
 import matplotlib.pyplot as plt
 from qiskit.visualization import plot_histogram
 from sympy import Symbol
+import numpy as np
 
 ###########################################################################
 
