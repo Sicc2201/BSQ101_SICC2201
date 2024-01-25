@@ -21,9 +21,7 @@ This file is the main file, the base project is build here.
 # Custom libraries
 import IBMQ_credentials
 import GroverUtils as grover
-import booleanProblems as bool
-from qiskit.visualization import plot_histogram
-import matplotlib.pyplot as plt
+import BooleanProblems as bool
 
 from sympy import *
 
@@ -50,8 +48,6 @@ def main():
     # get cnf from problems
     cnf_cake = bool.create_cake_problem()
     cnf_pincus = bool.create_pincus_problem()
-    print(cnf_pincus)
-
 
     # calculate the results of the SAT
     print("\n*****************************   Resolving Cake Problem   ***************************************\n")
@@ -67,8 +63,8 @@ def main():
     grover.validate_grover_solutions(cake_result, cnf_cake)
     grover.validate_grover_solutions(pincus_result, cnf_pincus)
 
-
     return 0
+
 
 if __name__ == "__main__":
     main()

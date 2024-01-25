@@ -51,7 +51,7 @@ from typing import Callable, Tuple
 ###########################################################################
 
 
-def disjonction_gate(qc: QuantumCircuit, variables: list,  proposition: Or, index: int) -> Tuple[CCXGate, str]:
+def disjonction_gate(variables: list,  proposition: Or, index: int) -> Tuple[CCXGate, str]:
 
     print("variables: ", variables)
     toffoli_qubits = ""
@@ -87,7 +87,7 @@ def create_oracle_gates(logical_formula: And) -> Gate:
 
         print("*********************  oracle part " + str(i - len(variables)) + " ************************")
         print("clause: ", clause)
-        toffoli_gate, qubit_index = disjonction_gate(qc, list(variables),  clause, i) 
+        toffoli_gate, qubit_index = disjonction_gate(list(variables),  clause, i) 
         qc.append(toffoli_gate, qubit_index)
         if isinstance(clause, Or): # if the proposition is a OR, add an X gate
             qc.x(i)
@@ -111,12 +111,12 @@ def cnf_to_oracle(logical_formula: And) -> Gate:
 
     gate = create_oracle_gates(logical_formula)
     z_gate = ZGate().control(num_clauses - 1)
-    diffuser = build_diffuser(num_vars)
+    
 
     qc.append(gate, qc.qubits)
     qc.append(z_gate, range(num_vars, qc.num_qubits))
     qc.append(gate.inverse(), qc.qubits)
-    qc.append(diffuser, range(num_vars))
+    
 
     # create the oracle gate
     oracle_gate = qc.to_gate()
@@ -134,10 +134,11 @@ def build_grover_circuit(oracle: Gate, num_of_vars: int, num_iters: int) -> Quan
 
     # initialize circuit |s> state 
     grover_circuit.h(range(variables_circuit.size))
+    diffuser = build_diffuser(num_of_vars)
 
     for i in range(num_iters):
         grover_circuit.append(oracle, grover_circuit.qubits)
-        
+        grover_circuit.append(diffuser, range(num_of_vars))
     return grover_circuit
 
 
@@ -182,10 +183,9 @@ def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Calla
     if save_histogram:
         utils.save_histogram_png(results, histogram_title)
 
-
     return boolean_solutions
 
 
-def validate_grover_solutions(results, cnf):
+def validate_grover_solutions(results: list[dict], cnf: And):
     for result in results:
         print(cnf.subs(result))

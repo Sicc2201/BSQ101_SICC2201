@@ -28,6 +28,7 @@ This file contains all general methods that needs to be called to create the cir
 # from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 from qiskit.visualization import plot_histogram
+from sympy import Symbol
 
 ###########################################################################
 
@@ -35,10 +36,11 @@ from qiskit.visualization import plot_histogram
 
 ###########################################################################
 
-def quantum_results_to_boolean(results: list, atoms: list) -> list[dict]:
+def quantum_results_to_boolean(results: dict, atoms: list[Symbol]) -> list[dict]:
 
     boolean_solutions = []
-    threshold = calculate_threshold(results)
+    print(results)
+    threshold = calculate_threshold(list(results.values()))
 
     for res in results.items():
         solution = False
@@ -57,9 +59,9 @@ def quantum_results_to_boolean(results: list, atoms: list) -> list[dict]:
 
 
 def calculate_threshold(results: list) -> float:
-    # nb_cluster = 2
-    # kmeans = KMeans(nb_cluster)
-    # kmeans.fit([t[1] for t in results])
+    # data = np.array(results).reshape(-1, 1)
+    # kmeans = KMeans(n_clusters = 2)
+    # kmeans.fit(data)
     # centroids = kmeans.cluster_centers_
     # sorted_centroids = np.sort(centroids, axis=0)
     # threshold = (sorted_centroids[0] + sorted_centroids[1]) / 2
@@ -77,6 +79,4 @@ def save_histogram_png(counts: dict, title: str):
     plot.set_xlabel("Qubits")
     plot.set_ylabel("Counts")
     plt.savefig(title + ".png")  
-
-    return 0
 
