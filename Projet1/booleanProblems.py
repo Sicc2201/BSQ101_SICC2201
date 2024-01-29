@@ -27,6 +27,13 @@ This is where you put the problems propositions.
 
 from sympy import symbols, to_cnf, And
 
+
+###########################################################################
+
+# Methods
+
+###########################################################################
+
 def create_cake_problem() -> And:
     Alan, Ben, Chris, Dave, Emma = symbols('Alan, Ben, Chris, Dave, Emma')
     Pa = (~Emma & ~Ben) | (Emma & Ben)
@@ -36,9 +43,8 @@ def create_cake_problem() -> And:
     Pe = (~Dave & ~Alan) | (Dave & Alan)
 
     Pg = Pa & Pb & Pc & Pd & Pe
-    cnf = to_cnf(Pg, True)
 
-    return cnf
+    return to_cnf(Pg, True)
 
 def create_pincus_problem() -> And:
         
@@ -58,5 +64,4 @@ def create_pincus_problem() -> And:
 
     p7 = ~Peur | ~Bruyant | ~Malade
 
-    cnf = p1 & p2 & p3 & p4 & p5 & p6 & p7
-    return cnf
+    return p1 & p2 & p3 & p4 & p5 & p6 & p7

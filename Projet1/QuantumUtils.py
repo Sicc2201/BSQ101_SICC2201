@@ -17,6 +17,8 @@ This file contains all general methods that needs to be called to create the cir
 
 - calculate_threshold(results: list) : Calculates the threshold to separate the True and False clusters in the data with a K-means.
 
+- save_histogram_png(counts: dict, title: str) : saves an histogram of your results as a png file.
+
 '''
 
 ###########################################################################

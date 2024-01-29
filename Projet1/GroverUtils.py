@@ -13,16 +13,20 @@ This file contains all the methods that we need to run a full Grover algorithm g
 
 # Methods:
 
-- args_to_toffoli(qc: QuantumCircuit, variables: list[symbols],  proposition, index: int) : Build toffoli gates from propositions to append in the global quantum circuit.
+- disjonction_gate(variables: list,  proposition: Or, index: int) -> Tuple[CCXGate, str] : create the toffolis gate according to the proposition.
+
+- create_oracle_gates(logical_formula: And) -> Gate : Create the parts of the oracles depending on the toffolis build from disjonction_gate().
 
 - cnf_to_oracle(logical_formula: And) -> Gate : Translates a normal conjunctive logical formula into an oracle that takes the form of a quantum gate.
 
 - build_diffuser(num_of_vars: int) -> Gate : Build the diffuser depending on the number of input qubits.
 
-- build_grover_circuit(oracle: Gate, cnf: And, num_iters: int) -> Gate : Build the Grover algorithm from the inputs.
+- build_grover_circuit(oracle: Gate, num_of_vars: int, num_iters: int) -> QuantumCircuit : Build the Grover algorithm from the inputs.
 
 - solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Callable, backend: Backend) ->  dict{string:bool}: Given a logical formula, converts
     this formula into an oracle, and a backend on which to execute a quantum circuit.
+
+- validate_grover_solutions(results: list[dict], cnf: And) : validate the result from the sumulation with sympy.
 
 '''
 
@@ -53,7 +57,6 @@ from typing import Callable, Tuple
 
 def disjonction_gate(variables: list,  proposition: Or, index: int) -> Tuple[CCXGate, str]:
 
-    print("variables: ", variables)
     toffoli_qubits = ""
     qubit_index = []
 
@@ -73,7 +76,6 @@ def disjonction_gate(variables: list,  proposition: Or, index: int) -> Tuple[CCX
 
 def create_oracle_gates(logical_formula: And) -> Gate:
 
-    print("cnf: ", logical_formula, "\n")
     # sort the proposition atoms
     variables = sorted(logical_formula.atoms(), key=lambda x: x.name)
 
@@ -85,16 +87,13 @@ def create_oracle_gates(logical_formula: And) -> Gate:
     i = len(variables)
     for clause in logical_formula.args:
 
-        print("*********************  oracle part " + str(i - len(variables)) + " ************************")
-        print("clause: ", clause)
         toffoli_gate, qubit_index = disjonction_gate(list(variables),  clause, i) 
         qc.append(toffoli_gate, qubit_index)
-        if isinstance(clause, Or): # if the proposition is a OR, add an X gate
-            qc.x(i)
+        qc.x(i)
 
         i += 1
 
-    # create the oracle gate
+    # create the oracle gate part
     oracle_gate = qc.to_gate()
     oracle_gate.name = "Oracle"
     return oracle_gate
@@ -162,10 +161,8 @@ def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Calla
     cnf_atoms = sorted(logical_formula.atoms(), key=lambda x: x.name)
     nb_vars = len(cnf_atoms)
 
-    nb_solution = 1
-    nb_iter = floor(pi/4 * sqrt(nb_vars/nb_solution))
-    nb_iter = 2  
-    print("num_iterations = ", nb_iter)  
+    nb_solution = 2
+    nb_iter = floor(pi/4 * sqrt((2**nb_vars)/nb_solution))
 
     grover_circuit = build_grover_circuit(logical_formula_to_oracle, nb_vars, nb_iter)
 
