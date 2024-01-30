@@ -22,6 +22,7 @@ This file is the main file, the base project is build here.
 import IBMQ_credentials
 import GroverUtils as grover
 import BooleanProblems as bool
+import QuantumUtils as utils
 
 from sympy import *
 
@@ -44,7 +45,7 @@ def main():
     #################################################################################
 
     provider, backend = IBMQ_credentials.ibmq_provider(backend_name)
-    
+    print("\n*****************************   Creating CNF   ***************************************\n")  
     # get cnf from problems
     cnf_cake = bool.create_cake_problem()
     cnf_pincus = bool.create_pincus_problem()
@@ -60,8 +61,8 @@ def main():
     print("We have ", len(pincus_result), " solution(s) -> ", pincus_result, "\n")
     print("*********************************************************************************************************")
 
-    grover.validate_grover_solutions(cake_result, cnf_cake)
-    grover.validate_grover_solutions(pincus_result, cnf_pincus)
+    utils.validate_grover_solutions(cake_result, cnf_cake)
+    utils.validate_grover_solutions(pincus_result, cnf_pincus)
 
     return 0
 

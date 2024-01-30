@@ -13,7 +13,7 @@ This file contains all the methods that we need to run a full Grover algorithm g
 
 # Methods:
 
-- disjonction_gate(variables: list,  proposition: Or, index: int) -> Tuple[CCXGate, str] : create the toffolis gate according to the proposition.
+- disjunction_gate(variables: list,  proposition: Or, index: int) -> Tuple[CCXGate, str] : create the toffolis gate according to the proposition.
 
 - create_oracle_gates(logical_formula: And) -> Gate : Create the parts of the oracles depending on the toffolis build from disjonction_gate().
 
@@ -25,8 +25,6 @@ This file contains all the methods that we need to run a full Grover algorithm g
 
 - solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Callable, backend: Backend) ->  dict{string:bool}: Given a logical formula, converts
     this formula into an oracle, and a backend on which to execute a quantum circuit.
-
-- validate_grover_solutions(results: list[dict], cnf: And) : validate the result from the sumulation with sympy.
 
 '''
 
@@ -46,8 +44,6 @@ from math import floor, sqrt, pi
 
 from typing import Callable, Tuple
 
-
-
 ###########################################################################
 
 # Methods
@@ -55,7 +51,7 @@ from typing import Callable, Tuple
 ###########################################################################
 
 
-def disjonction_gate(variables: list,  proposition: Or, index: int) -> Tuple[CCXGate, str]:
+def disjunction_gate(variables: list,  proposition: Or, index: int) -> Tuple[CCXGate, str]:
 
     toffoli_qubits = ""
     qubit_index = []
@@ -87,7 +83,7 @@ def create_oracle_gates(logical_formula: And) -> Gate:
     i = len(variables)
     for clause in logical_formula.args:
 
-        toffoli_gate, qubit_index = disjonction_gate(list(variables),  clause, i) 
+        toffoli_gate, qubit_index = disjunction_gate(list(variables),  clause, i) 
         qc.append(toffoli_gate, qubit_index)
         qc.x(i)
 
@@ -181,8 +177,3 @@ def solve_sat_with_grover(logical_formula: And, logical_formula_to_oracle: Calla
         utils.save_histogram_png(results, histogram_title)
 
     return boolean_solutions
-
-
-def validate_grover_solutions(results: list[dict], cnf: And):
-    for result in results:
-        print(cnf.subs(result))

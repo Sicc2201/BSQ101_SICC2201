@@ -9,7 +9,7 @@
 # Description: 
 
 This file contains all the boolean problems the projects needs to execute.
-This is where you put the problems propositions.
+This is where you put the problem's propositions.
 
 # methods:
 
