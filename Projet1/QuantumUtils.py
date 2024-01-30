@@ -85,4 +85,4 @@ def save_histogram_png(counts: dict, title: str):
 
 def validate_grover_solutions(results: list[dict], cnf: And):
     for result in results:
-        print(cnf.subs(result))
+        print("validation solution : ", cnf.subs(result))
