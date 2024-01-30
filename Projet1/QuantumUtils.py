@@ -69,7 +69,6 @@ def calculate_threshold(results: list) -> float:
     centroids = kmeans.cluster_centers_
     sorted_centroids = np.sort(centroids, axis=0)
     threshold = (sorted_centroids[0] + sorted_centroids[1]) / 2
-    threshold = 500
     return threshold
 
 def save_histogram_png(counts: dict, title: str):
