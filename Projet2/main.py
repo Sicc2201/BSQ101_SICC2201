@@ -18,6 +18,9 @@ This file is the main file, the base project is build here.
 
 ###########################################################################
 
+# python libraries
+
+
 # Custom libraries
 import IBMQ_credentials
 import utils
@@ -39,13 +42,25 @@ def main():
     # IBMQ_credentials.ibmq_connexion(ibmq_token)
 
     #################################################################################
+    # backend, execute_opts = 0
+    provider, backend = IBMQ_credentials.ibmq_provider(backend_name)
 
-    # provider, backend = IBMQ_credentials.ibmq_provider(backend_name)
+  
 
-    
-    chains = utils.create_all_pauli(3)
-    # Access the PauliList's pauli_list attribute
-    print(chains[60].x)
+    num_qubits = 3
+
+    execute_opts = {'shots': 1024}
+
+    state_circuit = utils.create_random_quantum_circuit(num_qubits)
+
+    state_vector = utils.state_tomography(state_circuit,backend,execute_opts)
+
+
+    print("starting compilation")
+    # pauli_chains = utils.create_all_pauli(3)
+    # selected = pauli_chains[50]
+    # print(selected)
+    # d_pauli, qc = utils.diagonalize_pauli_with_circuit(selected)
 
     return 0
 
