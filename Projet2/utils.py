@@ -21,6 +21,7 @@ from qiskit import QuantumCircuit
 from qiskit.providers.backend import Backend
 from qiskit.quantum_info import Pauli, PauliList
 from typing import Tuple, List
+from itertools import product, permutations
 import numpy as np
 from numpy.typing import NDArray
 
@@ -73,7 +74,20 @@ def state_tomography(
     return statevector
 
 
-def create_all_pauli(num_qubits: int) -> list[PauliList]:
+def create_all_pauli(num_qubits: int) -> PauliList:
 
-    pauli_list = PauliList.from_symplectic(z, x, phase)
-    return
+    # pauli_lists = []
+
+    # pauli_string = ["I", "X", "Y", "Z"]
+    # print(permutations(pauli_strings))
+
+    pauli_strings = "IXYZ"
+    pauli_combinations = product(pauli_strings, repeat=num_qubits)
+    
+    pauli_chains = []
+    for combination in pauli_combinations:
+        pauli_string = ''.join(combination)
+        pauli = Pauli(pauli_string)
+        pauli_chains.append(pauli)
+    
+    return PauliList(pauli_chains)

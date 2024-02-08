@@ -43,8 +43,9 @@ def main():
     # provider, backend = IBMQ_credentials.ibmq_provider(backend_name)
 
     
-    print(utils.bitstring_to_bits("0011001"))
-
+    chains = utils.create_all_pauli(3)
+    # Access the PauliList's pauli_list attribute
+    print(chains[60].x)
 
     return 0
 
