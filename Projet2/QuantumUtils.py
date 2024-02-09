@@ -31,6 +31,7 @@ This file contains all general methods that needs to be called to create the cir
 
 import matplotlib.pyplot as plt
 from qiskit.visualization import plot_histogram
+from qiskit import transpile
 import numpy as np
 
 ###########################################################################
@@ -49,3 +50,8 @@ def save_histogram_png(counts: dict, title: str):
     plot.set_xlabel("Possible solutions")
     plot.set_ylabel("Counts")
     plt.savefig(title + ".png")  
+
+def execute_job(circuit, backend, execute_opts):
+    transpiled_qc = transpile(circuit, backend)
+    job = backend.run(transpiled_qc, options = execute_opts)
+    return job.result().get_counts()

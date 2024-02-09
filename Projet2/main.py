@@ -47,9 +47,9 @@ def main():
 
   
 
-    num_qubits = 3
+    num_qubits = 2
 
-    execute_opts = {'shots': 1024}
+    execute_opts = {'shots': 256}
 
     state_circuit = utils.create_random_quantum_circuit(num_qubits)
 

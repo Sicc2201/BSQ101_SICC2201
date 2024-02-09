@@ -45,31 +45,27 @@ def calculate_pauli_trace(pauli: Pauli):
 
 # useful to calculate eigen values
 def bitstring_to_bits(bit_string: str) -> NDArray[np.bool_]:
-    print("bitstring_to_bits")
-    return np.array([False if  i == "0" else True for i in bit_string])[::-1]
+    return np.array([x == '1' for x in bit_string], dtype=bool)
 
 
-def diag_pauli_expectation_value(pauli: Pauli, counts: dict, index) -> float:
+def diag_pauli_expectation_value(pauli: Pauli, counts: dict) -> float:
     print("diag_pauli_expectation_value")
     assert(np.all(~pauli.x)) # verify if Pauli diagonal
 
-    total = len(counts)
+    total_counts = 0
 
     
-    # calculate sum of its eigen values
-    # on va diviser par la valeur total
+
+    # on va diviser par la valeur total ######################
     # utils.save_histogram_png(counts, "pauli_" + str(index))
-    print(pauli, " : ", counts)
-
-    # bitstring_to_bits(counts.keys)
-    # trouver le sum sign() dot product(bit.z et bits)
-
-    for bits, count in count.items():
-        
 
     expectation_value = 0
+    for bit_str, count in counts.items():
+        eigenvalue = (-1) ** (np.dot(bitstring_to_bits(bit_str), pauli.z)) # optimiser pair ou impair
+        expectation_value += eigenvalue * count
+        total_counts += count
 
-    return expectation_value
+    return expectation_value / total_counts
 
 
 # diagonalize circuit
@@ -95,11 +91,13 @@ def diagonalize_pauli_with_circuit(pauli : Pauli) -> Tuple[Pauli, QuantumCircuit
             qc.h(index)
             qc.sdg(index)
 
-    # changer le z bits et x bits selon les nouvelles gates
-    
-    qc.append(pauli, qc.qubits)
-    pauli = Pauli()
+    qc.compose(pauli, qc.qubits)
+    diag_z_bits = np.logical_or(z_bits, x_bits)
+    print("z_bits: ", z_bits)
+    print("x_bits: ", x_bits)
+    print("diag x_bits: ", diag_z_bits)
 
+    pauli = Pauli((diag_z_bits, np.zeros(num_qubits, dtype=bool)))
 
     assert(np.all(~pauli.x)) # verify the diagonalization
 
@@ -114,21 +112,20 @@ def estimate_expectation_values(
     execute_opts : dict = dict()) -> NDArray[np.float_]:
 
     print("estimate_expectation_values")
-    expectation_values = []
+    expectation_values = np.empty(4 ** state_circuit.num_qubits)
     index = 0
     for pauli in pauli_list:
-        diag_pauli, qc = diagonalize_pauli_with_circuit(pauli)
-        pauli_circuit = state_circuit.compose(qc)
-        pauli_circuit.measure_all()
-        transpiled_qc = transpile(pauli_circuit, backend)
-        job = backend.run(transpiled_qc, options = execute_opts)
-        counts = job.result().get_counts()
-        expected_value = diag_pauli_expectation_value(diag_pauli, counts, index)
-        expectation_values.append(expected_value)
+        expectation_values[index] = expectation_value_from_measurement(state_circuit, pauli, backend, execute_opts)
         index += 1
 
     return expectation_values
 
+def expectation_value_from_measurement(state_circuit, pauli, backend, execute_opts):
+        diag_pauli, pauli_qc = diagonalize_pauli_with_circuit(pauli)
+        pauli_circuit = state_circuit.compose(pauli_qc, state_circuit.qubits)
+        pauli_circuit.measure_all()
+        counts = utils.execute_job(pauli_circuit, backend, execute_opts)
+        return diag_pauli_expectation_value(diag_pauli, counts)
 
 def state_tomography(
     state_circuit: QuantumCircuit,
@@ -138,9 +135,11 @@ def state_tomography(
     print("state_tomography")
 
     pauli_list = create_all_pauli(state_circuit.num_qubits)
-    expected_values = estimate_expectation_values(pauli_list,state_circuit,backend,execute_opts)
+    expectation_values = estimate_expectation_values(pauli_list,state_circuit,backend,execute_opts)
 
-    density_matrix = calculate_density_matrix()
+    print(expectation_values)
+
+    density_matrix = calculate_density_matrix(expectation_values)
 
     statevector = 0
 
@@ -161,5 +160,5 @@ def create_random_quantum_circuit(num_qubits):
 
     return qc
 
-def calculate_density_matrix():
+def calculate_density_matrix(expectation_values):
     return
