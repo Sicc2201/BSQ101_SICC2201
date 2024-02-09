@@ -36,7 +36,7 @@ import QuantumUtils as utils
 
 ###########################################################################
 
-def calculate_trace(pauli):
+def calculate_pauli_trace(pauli: Pauli):
     print("calculate_trace")
     pauli_matrix = pauli.to_matrix()
     trace = np.trace(pauli_matrix)
@@ -53,13 +53,19 @@ def diag_pauli_expectation_value(pauli: Pauli, counts: dict, index) -> float:
     print("diag_pauli_expectation_value")
     assert(np.all(~pauli.x)) # verify if Pauli diagonal
 
+    total = len(counts)
+
+    
     # calculate sum of its eigen values
+    # on va diviser par la valeur total
     # utils.save_histogram_png(counts, "pauli_" + str(index))
     print(pauli, " : ", counts)
 
     # bitstring_to_bits(counts.keys)
+    # trouver le sum sign() dot product(bit.z et bits)
 
-    trace = calculate_trace(pauli)
+    for bits, count in count.items():
+        
 
     expectation_value = 0
 
@@ -76,41 +82,23 @@ def diagonalize_pauli_with_circuit(pauli : Pauli) -> Tuple[Pauli, QuantumCircuit
     index = num_qubits
 
     qc = QuantumCircuit(num_qubits)
+
     for z, x in zip(z_bits, x_bits):
         index -= 1
         if x == 0:
             print(index, ": Z or I gate, apply nothing")
         elif z == 0:
             print(index, ": X gate, apply HZH")
-            pauli.dot(HGate, qargs=[index], inplace=True)
-            pauli.dot(XGate, qargs=[index], inplace=True)
-            pauli.dot(HGate, qargs=[index], inplace=True)
+            qc.h(index)
         else:
             print(index, ": Y gate, apply SHZHS")
-            pauli.dot(SGate, qargs=[index], inplace=True)
-            pauli.dot(HGate, qargs=[index], inplace=True)
-            pauli.dot(ZGate, qargs=[index], inplace=True)
-            pauli.dot(HGate, qargs=[index], inplace=True)
-            pauli.dot(SdgGate, qargs=[index], inplace=True)
+            qc.h(index)
+            qc.sdg(index)
 
-    # for z, x in zip(z_bits, x_bits):
-    #     index -= 1
-    #     if x == 0:
-    #         print(index, ": Z or I gate, apply nothing")
-    #     elif z == 0:
-    #         print(index, ": X gate, apply HZH")
-    #         qc.h(index)
-    #         qc.x(index)
-    #         qc.h(index)
-    #     else:
-    #         print(index, ": Y gate, apply SHZHS")
-    #         qc.s(index)
-    #         qc.h(index)
-    #         qc.z(index)
-    #         qc.h(index)
-    #         qc.sdg(index)
+    # changer le z bits et x bits selon les nouvelles gates
     
     qc.append(pauli, qc.qubits)
+    pauli = Pauli()
 
 
     assert(np.all(~pauli.x)) # verify the diagonalization
