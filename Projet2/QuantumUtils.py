@@ -8,14 +8,20 @@
 '''
 # Description:
 
-This file contains all general methods that needs to be called to create the circuit that are not specificly Grover related.
+This file contains all general methods that needs to be called to create the circuit.
 
 
 # Methods:
 
+- bitstring_to_bits(bit_string: str) : convert a bit string array into a bool array.
+
 - save_histogram_png(counts: dict, title: str) : saves an histogram of your results as a png file.
 
 - execute_job(circuit: QuantumCircuit, backend: Backend, execute_opts: dict : run the quantum job and return the counts
+
+-  create_all_pauli(num_qubits: int) -> PauliList:
+
+-  create_random_quantum_circuit(num_qubits):
 
 '''
 
@@ -30,8 +36,9 @@ from qiskit.visualization import plot_histogram
 from qiskit import transpile, QuantumCircuit
 from qiskit.providers.backend import Backend
 import numpy as np
-
-from qiskit.tools.monitor import job_monitor
+from numpy.typing import NDArray
+from itertools import product
+from qiskit.quantum_info import Pauli, PauliList
 
 ###########################################################################
 
@@ -55,3 +62,18 @@ def execute_job(circuit: QuantumCircuit, backend: Backend, execute_opts: dict):
     transpiled_qc = transpile(circuit, backend)
     job = backend.run(transpiled_qc, execute_opts)
     return job.result().get_counts()
+
+def bitstring_to_bits(bit_string: str) -> NDArray[np.bool_]:
+    return np.array([x == '1' for x in bit_string], dtype=bool)
+
+def create_all_pauli(num_qubits: int) -> PauliList:
+    pauli_bits_combinations = product([0,1], repeat=num_qubits)
+    pauli_zx_permutations = list(product(pauli_bits_combinations, repeat=2))
+    pauli_list = [Pauli(pauli) for pauli in pauli_zx_permutations]
+    return PauliList(pauli_list)
+
+def create_random_quantum_circuit(num_qubits):
+    qc = QuantumCircuit(num_qubits)
+    qc.h(qc.qubits)
+
+    return qc

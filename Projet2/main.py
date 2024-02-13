@@ -18,12 +18,10 @@ This file is the main file, the base project is build here.
 
 ###########################################################################
 
-# python libraries
-
-
 # Custom libraries
 import IBMQ_credentials
-import utils
+import State_tomography
+import QuantumUtils as utils
 
 ###########################################################################
 
@@ -43,9 +41,7 @@ def main():
 
     #################################################################################
     # backend, execute_opts = 0
-    provider, backend = IBMQ_credentials.ibmq_provider(backend_name)
-
-  
+    _, backend = IBMQ_credentials.ibmq_provider(backend_name)
 
     num_qubits = 2
 
@@ -53,7 +49,7 @@ def main():
 
     state_circuit = utils.create_random_quantum_circuit(num_qubits)
 
-    state_vector = utils.state_tomography(state_circuit,backend,execute_opts)
+    state_vector = State_tomography.state_tomography(state_circuit,backend,execute_opts)
     print(state_vector)
 
 
