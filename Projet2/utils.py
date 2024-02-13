@@ -25,6 +25,7 @@ from typing import Tuple, List
 from itertools import product
 import numpy as np
 from numpy.typing import NDArray
+from scipy.linalg import sqrtm
 
 
 #custom library
@@ -36,12 +37,6 @@ import QuantumUtils as utils
 
 ###########################################################################
 
-def calculate_pauli_trace(pauli: Pauli):
-    print("calculate_trace")
-    pauli_matrix = pauli.to_matrix()
-    trace = np.trace(pauli_matrix)
-    return trace
-
 
 # useful to calculate eigen values
 def bitstring_to_bits(bit_string: str) -> NDArray[np.bool_]:
@@ -52,16 +47,12 @@ def diag_pauli_expectation_value(pauli: Pauli, counts: dict) -> float:
     print("diag_pauli_expectation_value")
     assert(np.all(~pauli.x)) # verify if Pauli diagonal
 
-    total_counts = 0
-
-    
-
-    # on va diviser par la valeur total ######################
     # utils.save_histogram_png(counts, "pauli_" + str(index))
-
+    total_counts = 0
     expectation_value = 0
     for bit_str, count in counts.items():
-        eigenvalue = (-1) ** (np.dot(bitstring_to_bits(bit_str), pauli.z)) # optimiser pair ou impair
+        eigenvalue = 1 - 2 * (np.dot(bitstring_to_bits(bit_str), pauli.z) % 2)
+        print(eigenvalue)
         expectation_value += eigenvalue * count
         total_counts += count
 
@@ -84,10 +75,10 @@ def diagonalize_pauli_with_circuit(pauli : Pauli) -> Tuple[Pauli, QuantumCircuit
         if x == 0:
             print(index, ": Z or I gate, apply nothing")
         elif z == 0:
-            print(index, ": X gate, apply HZH")
+            print(index, ": X gate, apply H")
             qc.h(index)
         else:
-            print(index, ": Y gate, apply SHZHS")
+            print(index, ": Y gate, apply HS")
             qc.h(index)
             qc.sdg(index)
 
@@ -111,21 +102,24 @@ def estimate_expectation_values(
     backend: Backend,
     execute_opts : dict = dict()) -> NDArray[np.float_]:
 
+    diag_pauli_list = []
     print("estimate_expectation_values")
     expectation_values = np.empty(4 ** state_circuit.num_qubits)
     index = 0
     for pauli in pauli_list:
-        expectation_values[index] = expectation_value_from_measurement(state_circuit, pauli, backend, execute_opts)
+        expectation_values[index], diag_pauli = expectation_value_from_measurement(state_circuit, pauli, backend, execute_opts)
         index += 1
+        diag_pauli_list.append(diag_pauli) 
 
-    return expectation_values
+    return expectation_values, PauliList(diag_pauli_list)
 
 def expectation_value_from_measurement(state_circuit, pauli, backend, execute_opts):
         diag_pauli, pauli_qc = diagonalize_pauli_with_circuit(pauli)
         pauli_circuit = state_circuit.compose(pauli_qc, state_circuit.qubits)
         pauli_circuit.measure_all()
         counts = utils.execute_job(pauli_circuit, backend, execute_opts)
-        return diag_pauli_expectation_value(diag_pauli, counts)
+        print("job done")
+        return diag_pauli_expectation_value(diag_pauli, counts), diag_pauli
 
 def state_tomography(
     state_circuit: QuantumCircuit,
@@ -135,15 +129,15 @@ def state_tomography(
     print("state_tomography")
 
     pauli_list = create_all_pauli(state_circuit.num_qubits)
-    expectation_values = estimate_expectation_values(pauli_list,state_circuit,backend,execute_opts)
+    expectation_values, diag_pauli_list = estimate_expectation_values(pauli_list,state_circuit,backend,execute_opts)
+    expectation_values = (1/(2**state_circuit.num_qubits)) * expectation_values
 
-    print(expectation_values)
+    density_matrix = calculate_density_matrix(diag_pauli_list, expectation_values)
+    print(density_matrix)
 
-    density_matrix = calculate_density_matrix(expectation_values)
+    state_vector = calculate_stateVector(density_matrix)
 
-    statevector = 0
-
-    return statevector
+    return state_vector
 
 def create_all_pauli(num_qubits: int) -> PauliList:
     print("create_all_pauli")
@@ -160,5 +154,17 @@ def create_random_quantum_circuit(num_qubits):
 
     return qc
 
-def calculate_density_matrix(expectation_values):
-    return
+def calculate_density_matrix(pauli_list: PauliList, expectation_values: List):
+    density_matrix = sum(np.multiply(value, pauli.to_matrix()) for value, pauli in zip(expectation_values, pauli_list))
+
+    return density_matrix
+
+def calculate_stateVector(density_matrix):
+
+    # je ne suis pas sûr comment trouver le state vector avec la matrice de densité - J'ai trouvé cette façon sur internet
+    sqrt_density_matrix = sqrtm(density_matrix)
+    eigenvalues, eigenvectors = np.linalg.eig(sqrt_density_matrix)
+    max_index = np.argmax(eigenvalues)
+    state_vector = eigenvectors[:, max_index]
+    state_vector /= np.linalg.norm(state_vector)
+    return state_vector

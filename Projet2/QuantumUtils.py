@@ -13,13 +13,9 @@ This file contains all general methods that needs to be called to create the cir
 
 # Methods:
 
-- quantum_results_to_boolean(results: list, atoms: list) : Converts the results from the quantum operation to an easy to understand format.
-
-- calculate_threshold(results: list) : Calculates the threshold to separate the True and False clusters in the data with a K-means.
-
 - save_histogram_png(counts: dict, title: str) : saves an histogram of your results as a png file.
 
-- validate_grover_solutions(results: list[dict], cnf: And) : validate the result from the sumulation with sympy.
+- execute_job(circuit: QuantumCircuit, backend: Backend, execute_opts: dict : run the quantum job and return the counts
 
 '''
 
@@ -31,8 +27,11 @@ This file contains all general methods that needs to be called to create the cir
 
 import matplotlib.pyplot as plt
 from qiskit.visualization import plot_histogram
-from qiskit import transpile
+from qiskit import transpile, QuantumCircuit
+from qiskit.providers.backend import Backend
 import numpy as np
+
+from qiskit.tools.monitor import job_monitor
 
 ###########################################################################
 
@@ -51,7 +50,8 @@ def save_histogram_png(counts: dict, title: str):
     plot.set_ylabel("Counts")
     plt.savefig(title + ".png")  
 
-def execute_job(circuit, backend, execute_opts):
+def execute_job(circuit: QuantumCircuit, backend: Backend, execute_opts: dict):
+    print("run job")
     transpiled_qc = transpile(circuit, backend)
-    job = backend.run(transpiled_qc, options = execute_opts)
+    job = backend.run(transpiled_qc, execute_opts)
     return job.result().get_counts()

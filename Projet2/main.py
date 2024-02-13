@@ -54,13 +54,8 @@ def main():
     state_circuit = utils.create_random_quantum_circuit(num_qubits)
 
     state_vector = utils.state_tomography(state_circuit,backend,execute_opts)
+    print(state_vector)
 
-
-    print("starting compilation")
-    # pauli_chains = utils.create_all_pauli(3)
-    # selected = pauli_chains[50]
-    # print(selected)
-    # d_pauli, qc = utils.diagonalize_pauli_with_circuit(selected)
 
     return 0
 
