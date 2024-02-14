@@ -1,0 +1,236 @@
+<mxfile host="Electron" modified="2024-02-14T21:44:15.801Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/23.0.2 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="6p-T7CGCoFhh_PSaSL1s" version="23.0.2" type="device">
+  <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
+    <mxGraphModel dx="3274" dy="1630" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
+        <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-57" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="90" y="550" width="420" height="530" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-32" value="" style="rounded=0;fontColor=none;noLabel=1;labelBackgroundColor=none;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-510" y="30" width="1570" height="460" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-4" value="disjuction_gate(QuantumCircuit, list[symbols], Or, int) -&amp;gt; CCXGate, str" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="570" y="340" width="450" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-5" value="&lt;ul&gt;&lt;li&gt;Créer des toffoli gate à partir d&#39;une proposition&lt;/li&gt;&lt;li&gt;Retourne une gate et l&#39;index des quibits sur lesquels l&#39;appliquer&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="570" y="370" width="450" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-6" value="create_oracle_gates(And) -&amp;gt; Gate" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="570" y="210" width="450" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-7" value="&lt;ul&gt;&lt;li&gt;Trie les symbols&lt;/li&gt;&lt;li&gt;Créer la partie de l&#39;oracle avec les portes toffoli&lt;/li&gt;&lt;li&gt;Retourne une Gate&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="570" y="240" width="450" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-8" value="cnf_to_oracle(And) -&amp;gt; Gate" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="30" y="275" width="450" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-9" value="&lt;ul&gt;&lt;li&gt;Crée une Gate contenant toutes les parties de l&#39;oracle()&lt;/li&gt;&lt;li&gt;toffolis, z-gate, toffolis inverse&lt;/li&gt;&lt;li&gt;Retourne une Gate&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="30" y="305" width="450" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-10" value="build_diffuser(int) -&amp;gt; Gate" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="570" y="80" width="450" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-11" value="&lt;ul&gt;&lt;li&gt;Crée le diffuser&lt;br&gt;&lt;/li&gt;&lt;li&gt;Retourne une Gate&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="570" y="110" width="450" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-12" value="build_grover_circuit(Gate, int, int) -&amp;gt; QuantumCircuit" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="30" y="140" width="450" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-13" value="&lt;ul&gt;&lt;li&gt;Applique l&#39;oracle et le diffuseur sur un circuit global&lt;/li&gt;&lt;li&gt;Répète cette étape pour le nombre d&#39;itérations nécessaires&lt;/li&gt;&lt;li&gt;Retourne un QuantumCircuit&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="30" y="170" width="450" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-14" value="state_tomography(QuantumCircuit, Backend, dict) -&amp;gt; NDArray[np.cmplex_]" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-490" y="140" width="450" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-15" value="&lt;ul&gt;&lt;li&gt;Trie les symbols&lt;/li&gt;&lt;li&gt;Crée le circuit de Grover&lt;/li&gt;&lt;li&gt;Mesure le résultat&lt;/li&gt;&lt;li&gt;Affiche des résultats compréhensibles&lt;/li&gt;&lt;li&gt;Sauvegarde un histogramme si voulu&lt;/li&gt;&lt;li&gt;Retourne une liste de dictionnaire {&quot;Symbol&quot; : bool}&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-490" y="170" width="450" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-16" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="lYOXAHwFV_pLX-w3Jf-a-14" target="lYOXAHwFV_pLX-w3Jf-a-12" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="250" y="240" as="sourcePoint" />
+            <mxPoint x="300" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-17" value="" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" target="lYOXAHwFV_pLX-w3Jf-a-8" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="320" y="90" as="sourcePoint" />
+            <mxPoint x="530" y="110" as="targetPoint" />
+            <Array as="points">
+              <mxPoint y="190" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-18" value="" style="endArrow=none;html=1;rounded=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="90" as="sourcePoint" />
+            <mxPoint x="320" y="90" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-19" value="" style="endArrow=none;html=1;rounded=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="160" as="sourcePoint" />
+            <mxPoint x="510" y="90" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-21" value="" style="endArrow=none;html=1;rounded=0;exitX=0.999;exitY=0.686;exitDx=0;exitDy=0;exitPerimeter=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="lYOXAHwFV_pLX-w3Jf-a-12" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="410" y="210" as="sourcePoint" />
+            <mxPoint x="510" y="160" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-22" value="" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" target="lYOXAHwFV_pLX-w3Jf-a-10" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="480" y="160" as="sourcePoint" />
+            <mxPoint x="530" y="110" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="510" y="130" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-23" value="" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" target="lYOXAHwFV_pLX-w3Jf-a-6" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="480" y="290" as="sourcePoint" />
+            <mxPoint x="530" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-24" value="" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" target="lYOXAHwFV_pLX-w3Jf-a-4" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="860" y="320" as="sourcePoint" />
+            <mxPoint x="570" y="520" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="540" y="420" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-25" value="" style="endArrow=none;html=1;rounded=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1040" y="320" as="sourcePoint" />
+            <mxPoint x="860" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-26" value="" style="endArrow=none;html=1;rounded=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1040" y="320" as="sourcePoint" />
+            <mxPoint x="1040" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-28" value="" style="endArrow=none;html=1;rounded=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1020" y="220" as="sourcePoint" />
+            <mxPoint x="1040" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-33" value="State_tomography.py" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-510" y="-10" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-36" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-890" y="-240" width="320" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-37" value="main.py" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-890" y="-280" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-39" value="main()" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-870" y="-220" width="270" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-40" value="&lt;ul&gt;&lt;li&gt;Connexion à IBMQ&lt;/li&gt;&lt;li&gt;Creation d&#39;un circuit secret&lt;/li&gt;&lt;li&gt;Appel state_tomography() pour trouver le vecteur d&#39;état&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-870" y="-190" width="270" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-43" value="" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="lYOXAHwFV_pLX-w3Jf-a-39" target="lYOXAHwFV_pLX-w3Jf-a-14" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-600" y="-215" as="sourcePoint" />
+            <mxPoint x="-510" y="-280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-46" value="&lt;ul&gt;&lt;li&gt;Créer un Quantum circuit aléatoire&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="125" y="990" width="355" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-47" value="create_random_quantum_circuit(int) -&amp;gt; QuantumCircuit" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="125" y="960" width="355" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-48" value="" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="lYOXAHwFV_pLX-w3Jf-a-39" target="lYOXAHwFV_pLX-w3Jf-a-47" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-590" y="-195" as="sourcePoint" />
+            <mxPoint x="-480" y="165" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="-550" y="90" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-49" value="" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-430" y="-360" width="420" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-50" value="ibmq_provider(str)" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-395" y="-210" width="355" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-51" value="&lt;ul&gt;&lt;li&gt;donne plus facilement l&#39;accès au provider et au backend&lt;/li&gt;&lt;li&gt;retourne le provider et le backend&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-395" y="-180" width="355" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-52" value="ibmq_connexion(str)" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-395" y="-340" width="355" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-53" value="&lt;ul&gt;&lt;li&gt;Sauvegarde le compte associé au TOKEN&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-395" y="-310" width="355" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-54" value="IBMQ_credentials.py" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="-430" y="-400" width="175" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-55" value="" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="lYOXAHwFV_pLX-w3Jf-a-39" target="lYOXAHwFV_pLX-w3Jf-a-52" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-590" y="-200" as="sourcePoint" />
+            <mxPoint x="-495" y="-490" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-56" value="" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="lYOXAHwFV_pLX-w3Jf-a-39" target="lYOXAHwFV_pLX-w3Jf-a-50" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-590" y="-195" as="sourcePoint" />
+            <mxPoint x="-445" y="-275" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-58" value="create_all_pauli(int) -&amp;gt; PauliList" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="125" y="840" width="355" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-59" value="&lt;ul&gt;&lt;li&gt;À partir d&#39;un nombre de qubits, créer toutes les combinaisons de Pauli possibles&lt;/li&gt;&lt;li&gt;retourner une liste de Pauli&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="125" y="870" width="355" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-60" value="execute_job(QuantumCircuit, Backend, dict) -&amp;gt; dict" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="125" y="570" width="355" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-61" value="&lt;ul&gt;&lt;li&gt;Transpile le circuit en entrée&lt;/li&gt;&lt;li&gt;execute la &#39;&#39;job&#39;&#39; sur le backend&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="125" y="600" width="355" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-62" value="Utils.py" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="90" y="510" width="175" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-63" value="bitstring_to_bits(str)&amp;nbsp;-&amp;gt; NDArray[np.bool]" style="rounded=0;whiteSpace=wrap;html=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="125" y="710" width="355" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-64" value="&lt;ul&gt;&lt;li&gt;Prend une liste de bit en format string et la convertie en array de booléen&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="125" y="740" width="355" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-70" value="" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" target="lYOXAHwFV_pLX-w3Jf-a-58" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-40" y="155" as="sourcePoint" />
+            <mxPoint x="120" y="835" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="-10" y="560" />
+              <mxPoint y="360" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lYOXAHwFV_pLX-w3Jf-a-71" value="" style="edgeStyle=elbowEdgeStyle;elbow=horizontal;endArrow=classic;html=1;curved=0;rounded=0;endSize=8;startSize=8;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="lYOXAHwFV_pLX-w3Jf-a-14" target="lYOXAHwFV_pLX-w3Jf-a-60" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-40" y="140" as="sourcePoint" />
+            <mxPoint x="125" y="570" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="-10" y="470" />
+              <mxPoint y="345" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
