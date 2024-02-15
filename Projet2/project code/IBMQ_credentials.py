@@ -26,6 +26,7 @@ This file contains all the necessary methods for IBMQ connexion and services
 
 # importing Qiskit
 from qiskit_ibm_runtime import QiskitRuntimeService
+from qiskit import Aer
 
 
 ###########################################################################
@@ -46,3 +47,6 @@ def ibmq_provider(provider_name: str):
     backend = provider.backend(provider_name)
     # print(backend.configuration().basis_gates)
     return provider, backend
+
+def get_local_simulator():
+    return Aer.get_backend("qasm_simulator")

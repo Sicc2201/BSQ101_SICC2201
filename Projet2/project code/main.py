@@ -40,8 +40,10 @@ def main():
     # IBMQ_credentials.ibmq_connexion(ibmq_token)
 
     #################################################################################
-    # backend, execute_opts = 0
-    _, backend = IBMQ_credentials.ibmq_provider(backend_name)
+
+    #_, backend = IBMQ_credentials.ibmq_provider(backend_name)
+
+    backend = IBMQ_credentials.get_local_simulator()
 
     num_qubits = 2
 

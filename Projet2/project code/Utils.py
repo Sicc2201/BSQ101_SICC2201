@@ -39,6 +39,7 @@ import numpy as np
 from numpy.typing import NDArray
 from itertools import product
 from qiskit.quantum_info import Pauli, PauliList
+from typing import Union, List
 
 ###########################################################################
 
@@ -57,7 +58,7 @@ def save_histogram_png(counts: dict, title: str):
     plot.set_ylabel("Counts")
     plt.savefig(title + ".png")  
 
-def execute_job(circuit: QuantumCircuit, backend: Backend, execute_opts: dict) -> dict:
+def execute_job(circuit: Union[QuantumCircuit, List[QuantumCircuit]] , backend: Backend, execute_opts: dict) -> dict:
     print("run job")
     transpiled_qc = transpile(circuit, backend)
     job = backend.run(transpiled_qc, execute_opts)
