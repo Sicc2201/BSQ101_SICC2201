@@ -3,7 +3,7 @@
 
 # Titre: IBMQ_credentials.py
 # Author: Christopher Sicotte (SICC2201)
-# last modified: 21/01/2024
+# last modified: 15/02/2024
 
 ##########################################################################
 '''

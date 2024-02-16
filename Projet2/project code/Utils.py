@@ -1,8 +1,8 @@
 ##########################################################################
 
-# Titre: QuantumUtils.py
+# Titre: Utils.py
 # Author: Christopher Sicotte (SICC2201)
-# last modified: 23/01/2024
+# last modified: 15/02/2024
 
 ##########################################################################
 '''
@@ -33,7 +33,7 @@ This file contains all general methods that needs to be called to create the cir
 
 import matplotlib.pyplot as plt
 from qiskit.visualization import plot_histogram
-from qiskit import transpile, QuantumCircuit
+from qiskit import transpile, QuantumCircuit, assemble
 from qiskit.providers.backend import Backend
 import numpy as np
 from numpy.typing import NDArray
@@ -58,11 +58,12 @@ def save_histogram_png(counts: dict, title: str):
     plot.set_ylabel("Counts")
     plt.savefig(title + ".png")  
 
-def execute_job(circuit: Union[QuantumCircuit, List[QuantumCircuit]] , backend: Backend, execute_opts: dict) -> dict:
+def execute_job(circuit: List[QuantumCircuit] , backend: Backend, execute_opts: dict) -> dict:
     print("run job")
-    transpiled_qc = transpile(circuit, backend)
-    job = backend.run(transpiled_qc, execute_opts)
-    return job.result().get_counts()
+    transpiled_qc = transpile(list(circuit), backend)
+    queue_job = assemble(transpiled_qc)
+    job = backend.run(queue_job, **execute_opts)
+    return job.result()
 
 def bitstring_to_bits(bit_string: str) -> NDArray[np.bool_]:
     return np.array([x == '1' for x in bit_string], dtype=bool)[::-1]

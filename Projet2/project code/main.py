@@ -2,7 +2,7 @@
 
 # Titre: main.py
 # Author: Christopher Sicotte (SICC2201)
-# last modified: 02/02/2024
+# last modified: 15/02/2024
 
 ##########################################################################
 '''
@@ -47,7 +47,7 @@ def main():
 
     num_qubits = 2
 
-    execute_opts = {'shots': 256}
+    execute_opts = {'shots': 1024}
 
     state_circuit = Utils.create_random_quantum_circuit(num_qubits)
 
