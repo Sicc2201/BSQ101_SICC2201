@@ -69,6 +69,6 @@ def create_random_quantum_circuit(num_qubits : int, num_gates_to_apply : int):
         gate = random.choice(gates)
         random_qubit = random.choice(range(num_qubits))
         getattr(qc, gate)(random_qubit)
-        print("gate ", gate, "applied to the qubit ", random_qubit)
+        # print("gate ", gate, "applied to the qubit ", random_qubit)
 
     return qc
