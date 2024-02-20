@@ -13,15 +13,13 @@ This file contains all general methods that needs to be called to create the cir
 
 # Methods:
 
-- bitstring_to_bits(bit_string: str) : convert a bit string array into a bool array.
-
-- save_histogram_png(counts: dict, title: str) : saves an histogram of your results as a png file.
+- bitstring_to_bits(bit_string: str) -> NDArray[np.bool_] : convert a bit string array into a bool array.
 
 - execute_job(circuit: QuantumCircuit, backend: Backend, execute_opts: dict : run the quantum job and return the counts
 
 -  create_all_pauli(num_qubits: int) -> PauliList: Create all possible 4^nb_qubits Pauli gates.
 
--  create_random_quantum_circuit(num_qubits): create a secret random circuit (just H for now)
+-  create_random_quantum_circuit(num_qubits : int): create a secret random circuit
 
 '''
 
@@ -31,15 +29,15 @@ This file contains all general methods that needs to be called to create the cir
 
 ###########################################################################
 
-import matplotlib.pyplot as plt
-from qiskit.visualization import plot_histogram
 from qiskit import transpile, QuantumCircuit, assemble
 from qiskit.providers.backend import Backend
+from qiskit.circuit.library import ZGate, HGate, XGate, YGate, SGate
 import numpy as np
 from numpy.typing import NDArray
 from itertools import product
 from qiskit.quantum_info import Pauli, PauliList
-from typing import Union, List
+from typing import List
+import random
 
 ###########################################################################
 
@@ -47,19 +45,7 @@ from typing import Union, List
 
 ###########################################################################
 
-def save_histogram_png(counts: dict, title: str):
-
-    figure, plot = plt.subplots(figsize=(9, 8))
-
-    plot_histogram(counts, ax=plot)
-
-    plot.set_title(title + " result counts")
-    plot.set_xlabel("Possible solutions")
-    plot.set_ylabel("Counts")
-    plt.savefig(title + ".png")  
-
 def execute_job(circuit: List[QuantumCircuit] , backend: Backend, execute_opts: dict) -> dict:
-    print("run job")
     transpiled_qc = transpile(list(circuit), backend)
     queue_job = assemble(transpiled_qc)
     job = backend.run(queue_job, **execute_opts)
@@ -74,8 +60,15 @@ def create_all_pauli(num_qubits: int) -> PauliList:
     pauli_list = [Pauli(pauli) for pauli in pauli_zx_permutations]
     return PauliList(pauli_list)
 
-def create_random_quantum_circuit(num_qubits):
+def create_random_quantum_circuit(num_qubits : int, num_gates_to_apply : int):
     qc = QuantumCircuit(num_qubits)
-    qc.h(qc.qubits)
+
+    gates = ["h", "x", "z", "y"]
+
+    for i in range(num_gates_to_apply):
+        gate = random.choice(gates)
+        random_qubit = random.choice(range(num_qubits))
+        getattr(qc, gate)(random_qubit)
+        print("gate ", gate, "applied to the qubit ", random_qubit)
 
     return qc

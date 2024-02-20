@@ -9,30 +9,25 @@
 '''
 # Description: 
 
-This file contains all methods that implement the algorithm.
+ Ce fichier contient toutes fonctions qui gèrent les opérations à utiliser sur les Pauli et chaînes de Pauli utilisés dans la tomographie.
 
 # Methods:
 
-- diag_pauli_expectation_value(pauli: Pauli, counts: dict) -> float:
+- diag_pauli_expectation_value(pauli: Pauli, counts: dict) -> float: Calcule la valeur moyenne d'une chaîne de Pauli diagonale.
 
-- diagonalize_pauli_with_circuit(pauli : Pauli) -> Tuple[Pauli, QuantumCircuit]:
+- diagonalize_pauli_with_circuit(pauli : Pauli) -> Tuple[Pauli, QuantumCircuit]: Applique les transformations nécessaires au circuit mystère pour mesurer dans la bonne base de calcul selon la chaîne de Pauli en entrée et diagonalise la pauli en entrée.
+
+- diagonalize_pauli(z_bits : NDArray[np.bool_], x_bits: NDArray[np.bool_]) -> Pauli : Diagonalise une chaîne de Pauli selon sa représentation zx.
+
+- measure_pauli_circuit(state_circuit : QuantumCircuit, pauli_qc : QuantumCircuit) -> QuantumCircuit : Ajoute une chaîne de Pauli diagonale au circuit mystère et le mesure.
 
 - estimate_expectation_values(
     pauli_list: PauliList,
     state_circuit: QuantumCircuit,
     backend: Backend,
-    execute_opts : dict = dict()) -> NDArray[np.float_]:
+    execute_opts : dict = dict()) -> NDArray[np.float_]: Calcule les valeurs moyennes des chaînes de Pauli.
 
-- expectation_value_from_measurement(state_circuit, pauli, backend, execute_opts):
 
-- state_tomography(
-    state_circuit: QuantumCircuit,
-    backend: Backend,
-    execute_opts : dict = dict()) -> NDArray[np.complex_]:
-
--  calculate_density_matrix(pauli_list: PauliList, expectation_values: List):
-
-- calculate_stateVector(density_matrix)
 '''
 
 ###########################################################################
@@ -53,8 +48,6 @@ import Utils
 def diag_pauli_expectation_value(pauli: Pauli, counts: dict) -> float:
 
     assert(np.all(~pauli.x))
-
-    # utils.save_histogram_png(counts, "pauli_" + str(index))
     total_counts = 0
     expectation_value = 0
     for bit_str, count in counts.items():
@@ -72,12 +65,10 @@ def diagonalize_pauli_with_circuit(pauli : Pauli) -> Tuple[Pauli, QuantumCircuit
 
     qc = QuantumCircuit(num_qubits)
     for index, (z, x) in enumerate(zip(z_bits, x_bits)):
-        
-        if z ==1 and x == 1:
-            qc.sdg(num_qubits - index - 1)
-            qc.h(num_qubits - index - 1)
         if x == 1:
-            qc.h(num_qubits - index - 1)
+            if z == 1:
+                qc.sdg(index)
+            qc.h(index)
 
     pauli = diagonalize_pauli(z_bits, x_bits)
 
@@ -85,11 +76,11 @@ def diagonalize_pauli_with_circuit(pauli : Pauli) -> Tuple[Pauli, QuantumCircuit
 
     return (pauli, qc)
 
-def diagonalize_pauli(z_bits, x_bits):
+def diagonalize_pauli(z_bits : NDArray[np.bool_], x_bits: NDArray[np.bool_]) -> Pauli:
     diag_z_bits = np.logical_or(z_bits, x_bits)
     return Pauli((diag_z_bits, np.zeros(len(z_bits), dtype=bool)))
 
-def measure_pauli_circuit(state_circuit, pauli_qc):
+def measure_pauli_circuit(state_circuit : QuantumCircuit, pauli_qc : QuantumCircuit) -> QuantumCircuit:
         pauli_circuit = state_circuit.compose(pauli_qc, state_circuit.qubits)
         pauli_circuit.measure_all()
         return pauli_circuit
