@@ -37,7 +37,7 @@
 ###########################################################################
 from qiskit import QuantumCircuit
 from qiskit.providers.backend import Backend
-from qiskit.quantum_info import Pauli, PauliList
+from qiskit.quantum_info import Pauli, PauliList, SparsePauliOp
 from typing import Tuple
 import numpy as np
 from numpy.typing import NDArray

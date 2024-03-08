@@ -13,7 +13,7 @@ This file contains all general methods that needs to be called to create the cir
 
 # Methods:
 
-- bitstring_to_bits(bit_string: str) -> NDArray[np.bool_] : convert a bit string array into a bool array.
+- extract_data(file_name:str, file_path: str): 
 
 - execute_job(circuit: QuantumCircuit, backend: Backend, execute_opts: dict : run the quantum job and return the counts
 
@@ -33,6 +33,7 @@ from qiskit import transpile, QuantumCircuit, assemble
 from qiskit.providers.backend import Backend
 from qiskit.circuit.library import ZGate, HGate, XGate, YGate, SGate
 import numpy as np
+import os
 from numpy.typing import NDArray
 from itertools import product
 from qiskit.quantum_info import Pauli, PauliList
@@ -59,6 +60,12 @@ def create_all_pauli(num_qubits: int) -> PauliList:
     pauli_zx_permutations = list(product(pauli_bits_combinations, repeat=2))
     pauli_list = [Pauli(pauli) for pauli in pauli_zx_permutations]
     return PauliList(pauli_list)
+
+
+def extract_data(filename:str, datapath: str):
+    filepath = os.path.join(datapath, filename)
+    npzfile = np.load(filepath)
+    return npzfile["distance"], npzfile["one_body"], npzfile["two_body"], npzfile["nuclear_repulsion_energy"]
 
 def create_random_quantum_circuit(num_qubits : int, num_gates_to_apply : int):
     qc = QuantumCircuit(num_qubits)
