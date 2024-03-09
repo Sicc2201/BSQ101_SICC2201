@@ -9,7 +9,7 @@
 '''
 # Description: 
 
-Ce fichier contient toutes fonctions qui gèrent la tomographie.
+Ce fichier contient toutes fonctions qui gèrent le processus.
 # Methods:
 
 - state_tomography(
@@ -30,8 +30,9 @@ plus grande de la matrice de densité du système.
 
 ###########################################################################
 from qiskit import QuantumCircuit
+from qiskit.circuit import Parameter
 from qiskit.providers.backend import Backend
-from qiskit.quantum_info import PauliList, Statevector, SparsePauliOp
+from qiskit.quantum_info import PauliList, SparsePauliOp
 import numpy as np
 from numpy.typing import NDArray
 from typing import List, Callable
@@ -48,33 +49,27 @@ import Pauli_operations as po
 ###########################################################################
 
 def quantum_chemistry(
-    state_circuit: QuantumCircuit,
-    backend: Backend,
-    execute_opts : dict = dict()) -> NDArray[np.complex_]:
+one_body: NDArray[np.complex_],
+two_body: NDArray[np.complex_],
+state_circuit: QuantumCircuit,
+backend: Backend,
+execute_opts : dict = dict()) -> NDArray[np.complex_]:
 
 
-    return 
 
-def calculate_density_matrix(pauli_list: PauliList, expectation_values: NDArray[np.float_]) -> NDArray[np.complex_]:
-    density_matrix = np.sum(np.multiply(value, pauli.to_matrix()) for value, pauli in zip(expectation_values, pauli_list))
+    return 0
 
-    return density_matrix
+def create_initial_quantum_circuit(num_qubits : int):
+    qc = QuantumCircuit(num_qubits)
+    ry_param = Parameter("theta")
+    qc.ry(ry_param, 1)
+    qc.cx(1, 0).c_if(0, 0)
+    qc.cx(0, 2)
+    qc.cx(0, 3)
 
-def calculate_state_vector(density_matrix : NDArray[np.complex_]) -> NDArray[np.complex_]:
+    print(qc)
 
-    eigenvalues, eigenvectors = np.linalg.eigh(density_matrix)
-    max_value = np.argmax(eigenvalues)
-    state_vector = eigenvectors[:, max_value]
-    return state_vector
-
-def validate_state_vector(qc : QuantumCircuit, estimated_state_vector : NDArray[np.complex_]):
-
-    expected_state_vector = np.array(Statevector(qc))
-    print("vecteur d'état espéré: ", expected_state_vector)
-    print("vecteur d'état estimé: ", estimated_state_vector)
-    inner_product = np.dot(np.conj(estimated_state_vector), expected_state_vector)
-    norm_product = np.linalg.norm(estimated_state_vector) * np.linalg.norm(expected_state_vector)
-    return np.abs(inner_product / norm_product)**2
+    return qc
 
 
 def annihilation_operators_with_jordan_wigner(num_states: int) -> List[SparsePauliOp]:

@@ -67,15 +67,4 @@ def extract_data(filename:str, datapath: str):
     npzfile = np.load(filepath)
     return npzfile["distance"], npzfile["one_body"], npzfile["two_body"], npzfile["nuclear_repulsion_energy"]
 
-def create_random_quantum_circuit(num_qubits : int, num_gates_to_apply : int):
-    qc = QuantumCircuit(num_qubits)
 
-    gates = ["h", "x", "z", "y"]
-
-    for i in range(num_gates_to_apply):
-        gate = random.choice(gates)
-        random_qubit = random.choice(range(num_qubits))
-        getattr(qc, gate)(random_qubit)
-        print("gate ", gate, "applied to the qubit ", random_qubit)
-
-    return qc

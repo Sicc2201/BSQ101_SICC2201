@@ -17,10 +17,12 @@ C'est ce fichier qui sera lancé par l'utilisateur pour lancer l'algorithme.
 # IMPORTS
 
 ###########################################################################
+import numpy as np
+
 
 # Custom libraries
 import IBMQ_credentials
-import Quantum_chemistry as chem
+import Quantum_chemistry as qchem
 import Utils
 
 ###########################################################################
@@ -46,12 +48,20 @@ def main():
     #_, backend = IBMQ_credentials.ibmq_provider(backend_name)
 
     backend = IBMQ_credentials.get_local_simulator()
+    execute_opts = {'shots': 1024}
 
-    #dist, oneb, twob, energy = Utils.extract_data(filename, datapath)
+    dist, oneb, twob, energy = Utils.extract_data(filename, datapath)
 
-    num_qubits = 4
+    h2_orbitals = 4
 
-    chem.annihilation_operators_with_jordan_wigner(num_qubits)
+    state_circuit = qchem.create_initial_quantum_circuit(h2_orbitals)
+    # params = [np.pi/2]
+    #state_circuit_param = state_circuit.bind_parameters(params)
+
+    annihilators = qchem.annihilation_operators_with_jordan_wigner(state_circuit.num_qubits)
+    creators = [op.adjoint() for op in annihilators]
+
+    hamiltonian = qchem.build_qubit_hamiltonian(oneb, twob, annihilators, creators)
 
 
     return 0
