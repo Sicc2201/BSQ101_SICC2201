@@ -36,8 +36,8 @@ def main():
 
     ibmq_token = "put your token here"
     backend_name = "ibmq_qasm_simulator"
-    filename = "h2_mo_intergrals_d_0750.npz"
-    datapath = "h2_mo_integrals/"
+    filename = "h2_mo_integrals_d_0300.npz"
+    datapath = "BSQ101_projects/Projet3/project_code/h2_mo_integrals"
 
     ####  uncomment if this is the first time you connect to your IBMQ account  ##########
 
@@ -52,16 +52,23 @@ def main():
 
     dist, oneb, twob, energy = Utils.extract_data(filename, datapath)
 
+
+    # print('distance: ', dist, '\none_body: ', oneb, '\ntwo_body: ', twob, '\nenergy: ', energy)
+
     h2_orbitals = 4
 
     state_circuit = qchem.create_initial_quantum_circuit(h2_orbitals)
     # params = [np.pi/2]
     #state_circuit_param = state_circuit.bind_parameters(params)
 
-    annihilators = qchem.annihilation_operators_with_jordan_wigner(state_circuit.num_qubits)
+    annihilators = qchem.annihilation_operators_with_jordan_wigner(h2_orbitals)
     creators = [op.adjoint() for op in annihilators]
 
     hamiltonian = qchem.build_qubit_hamiltonian(oneb, twob, annihilators, creators)
+
+    print(hamiltonian)
+
+    # optimized_value = qchem.minimize_expectation_value(state_circuit, )
 
 
     return 0

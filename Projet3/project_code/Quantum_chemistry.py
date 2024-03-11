@@ -36,7 +36,7 @@ from qiskit.quantum_info import PauliList, SparsePauliOp
 import numpy as np
 from numpy.typing import NDArray
 from typing import List, Callable
-from scipy.optimize import OptimizeResult
+from scipy.optimize import OptimizeResult, minimize
 
 #custom library
 import Utils
@@ -60,12 +60,14 @@ execute_opts : dict = dict()) -> NDArray[np.complex_]:
     return 0
 
 def create_initial_quantum_circuit(num_qubits : int):
-    qc = QuantumCircuit(num_qubits)
+    qc = QuantumCircuit(num_qubits, num_qubits)
     ry_param = Parameter("theta")
     qc.ry(ry_param, 1)
-    qc.cx(1, 0).c_if(0, 0)
+    qc.x(1)
+    qc.cx(1, 0)
+    qc.x(1)
     qc.cx(0, 2)
-    qc.cx(0, 3)
+    qc.cx(1, 3)
 
     print(qc)
 
@@ -119,8 +121,23 @@ creation_operators: List[SparsePauliOp],
     Returns:
     SparsePauliOp: The total Hamiltonian as a sum of Pauli strings
     """
+    qubit_hamiltonian = 0
+    one_body_sum = 0
+    two_body_sum = 0
+
+    for i in range(len(annihilation_operators)):
+        for j in range(len(annihilation_operators)):
+            one_body_sum += one_body[i][j]*creation_operators[i]*annihilation_operators[j]
+
+    for i in range(len(annihilation_operators)):
+        for j in range(len(annihilation_operators)):  
+            for k in range(len(annihilation_operators)):
+                for l in range(len(annihilation_operators)): 
+                    two_body_sum += two_body[i][j][k][l]*creation_operators[i]*creation_operators[j]*annihilation_operators[k]*annihilation_operators[l]
+
+    qubit_hamiltonian = one_body_sum + 0.5*two_body_sum
     
-    return #qubit_hamiltonian
+    return qubit_hamiltonian
 
 def minimize_expectation_value(
 observable: SparsePauliOp,
@@ -150,6 +167,9 @@ execute_opts: dict = {},
     result = minimizer(cost_function, starting_params)
 
     return result
+
+def minimizer(cost_function:Callable, starting_params)-> OptimizeResult:
+    return minimize(cost_function, starting_params, method='COBYLA')
 
 def cost_function(params):
     return
