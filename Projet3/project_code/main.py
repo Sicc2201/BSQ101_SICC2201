@@ -68,7 +68,7 @@ def main():
 
     print(hamiltonian)
 
-    # optimized_value = qchem.minimize_expectation_value(observable_which_the_expectation_value_will_be_minimized, statecircuit, 0, minimize(cost_function, starting_params, method='COBYLA') )
+    # optimized_value = qchem.minimize_expectation_value(observable_which_the_expectation_value_will_be_minimized, statecircuit, [0], backend, minimize, execute_ops)
 
 
     return 0
