@@ -60,7 +60,7 @@ execute_opts : dict = dict()) -> NDArray[np.complex_]:
     return 0
 
 def create_initial_quantum_circuit(num_qubits : int):
-    qc = QuantumCircuit(num_qubits, num_qubits)
+    qc = QuantumCircuit(num_qubits)
     ry_param = Parameter("theta")
     qc.ry(ry_param, 1)
     qc.x(1)
@@ -100,9 +100,15 @@ def annihilation_operators_with_jordan_wigner(num_states: int) -> List[SparsePau
         
         paulis = PauliList.from_symplectic([z1_bits, z2_bits], [x1_bits, x1_bits])
         annihilation_operators[index] = 0.5 * SparsePauliOp(paulis, [1, 1j])
-        print(paulis)
 
     return annihilation_operators
+
+
+def estimate_energy(hamiltonian, state_circuit, backend, execute_ops):
+
+    estimated_values = po.estimate_expectation_values(hamiltonian.paulis, state_circuit, backend, execute_ops)
+    estimated_energy = np.sum(np.multiply(hamiltonian.coeffs, estimated_values))
+    return estimated_energy
 
 def build_qubit_hamiltonian(
 one_body: NDArray[np.complex_],
@@ -135,8 +141,9 @@ creation_operators: List[SparsePauliOp],
                     two_body_sum += two_body[i][j][k][l]*a_ij.compose(a_kl)
 
     qubit_hamiltonian = one_body_sum + 0.5*two_body_sum
+    simplified_qubit_hamiltonian = qubit_hamiltonian.simplify()
     
-    return qubit_hamiltonian
+    return simplified_qubit_hamiltonian
 
 def minimize_expectation_value(
 observable: SparsePauliOp,
@@ -162,16 +169,13 @@ execute_opts: dict = {},
     Returns:
     OptimizeResult: The result of the optimization
     """
+    
+    def cost_function(params):
+        ansatz.bind_parameters(params)
+        return estimate_energy(observable, ansatz.bind_parameters(params), backend, execute_opts)
 
-    result = minimizer(cost_function, starting_params)
+    return minimizer(cost_function, starting_params, method='COBYLA')
 
-    return result
-
-def minimizer(cost_function:Callable, starting_params)-> OptimizeResult:
-    return minimize(cost_function, starting_params, method='COBYLA')
-
-def cost_function(params):
-    return
 
 
 def exact_minimal_eigenvalue(observable: SparsePauliOp) -> float:

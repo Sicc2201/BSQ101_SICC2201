@@ -18,11 +18,13 @@ C'est ce fichier qui sera lancé par l'utilisateur pour lancer l'algorithme.
 
 ###########################################################################
 import numpy as np
+from scipy.optimize import minimize
 
 
 # Custom libraries
 import IBMQ_credentials
 import Quantum_chemistry as qchem
+import Pauli_operations as po
 import Utils
 
 ###########################################################################
@@ -58,17 +60,13 @@ def main():
     h2_orbitals = 4
 
     state_circuit = qchem.create_initial_quantum_circuit(h2_orbitals)
-    # params = [np.pi/2]
-    #state_circuit_param = state_circuit.bind_parameters(params)
+
 
     annihilators = qchem.annihilation_operators_with_jordan_wigner(h2_orbitals)
     creators = [op.adjoint() for op in annihilators]
 
     hamiltonian = qchem.build_qubit_hamiltonian(oneb, twob, annihilators, creators)
-
-    print(hamiltonian)
-
-    # optimized_value = qchem.minimize_expectation_value(observable_which_the_expectation_value_will_be_minimized, statecircuit, [0], backend, minimize, execute_ops)
+    minimized_energy = qchem.minimize_expectation_value(hamiltonian, state_circuit, [0], backend, minimize, execute_opts)
 
 
     return 0

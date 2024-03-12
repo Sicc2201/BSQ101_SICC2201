@@ -90,6 +90,8 @@ def estimate_expectation_values(
     state_circuit: QuantumCircuit,
     backend: Backend,
     execute_opts : dict = dict()) -> NDArray[np.float_]:
+    print(pauli_list)
+    print(state_circuit.num_qubits)
 
     jobs = np.empty(len(pauli_list), dtype=object)
     diag_pauli_list = np.empty(len(pauli_list), dtype=object)
