@@ -48,16 +48,25 @@ import Pauli_operations as po
 
 ###########################################################################
 
-def quantum_chemistry(
-one_body: NDArray[np.complex_],
-two_body: NDArray[np.complex_],
-state_circuit: QuantumCircuit,
+def get_minimal_energy_by_distance(
+filePath: str,
+num_orbitals: int,
 backend: Backend,
-execute_opts : dict = dict()) -> NDArray[np.complex_]:
+execute_opts : dict = dict()) -> dict:
+    
+    distance_energy = np.empty(num_orbitals, dtype=object)
+    state_circuit = create_initial_quantum_circuit(num_orbitals)
+    
+    annihilators = annihilation_operators_with_jordan_wigner(num_orbitals)
+    creators = [op.adjoint() for op in annihilators]
 
+    for file in filePath:
+        dist, oneb, twob, energy = Utils.extract_data(file)
 
+        hamiltonian = build_qubit_hamiltonian(oneb, twob, annihilators, creators)
+        distance_energy[dist] = minimize_expectation_value(hamiltonian, state_circuit, [0], backend, minimize, execute_opts)
 
-    return 0
+    return distance_energy
 
 def create_initial_quantum_circuit(num_qubits : int):
     qc = QuantumCircuit(num_qubits)
@@ -83,7 +92,7 @@ def annihilation_operators_with_jordan_wigner(num_states: int) -> List[SparsePau
     Returns:
     List[SparsePauliOp]: The annihilation operators
     """
-    # on sait le nombre d'annihilator
+
     annihilation_operators = np.empty(num_states, dtype=SparsePauliOp)
     z1_bits = np.zeros(num_states, dtype=bool)
     z2_bits = np.zeros(num_states, dtype=bool)
@@ -102,7 +111,6 @@ def annihilation_operators_with_jordan_wigner(num_states: int) -> List[SparsePau
         annihilation_operators[index] = 0.5 * SparsePauliOp(paulis, [1, 1j])
 
     return annihilation_operators
-
 
 def estimate_energy(hamiltonian, state_circuit, backend, execute_ops):
 
@@ -175,8 +183,6 @@ execute_opts: dict = {},
         return estimate_energy(observable, ansatz.bind_parameters(params), backend, execute_opts)
 
     return minimizer(cost_function, starting_params, method='COBYLA')
-
-
 
 def exact_minimal_eigenvalue(observable: SparsePauliOp) -> float:
     """

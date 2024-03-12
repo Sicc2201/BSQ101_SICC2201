@@ -17,8 +17,7 @@ C'est ce fichier qui sera lancé par l'utilisateur pour lancer l'algorithme.
 # IMPORTS
 
 ###########################################################################
-import numpy as np
-from scipy.optimize import minimize
+import os
 
 
 # Custom libraries
@@ -38,8 +37,8 @@ def main():
 
     ibmq_token = "put your token here"
     backend_name = "ibmq_qasm_simulator"
-    filename = "h2_mo_integrals_d_0300.npz"
-    datapath = "BSQ101_projects/Projet3/project_code/h2_mo_integrals"
+    directory_path = "BSQ101_projects/Projet3/project_code/h2_mo_integrals"
+    file_paths = [os.path.join(directory_path, file_path) for file_path in os.listdir(directory_path)]
 
     ####  uncomment if this is the first time you connect to your IBMQ account  ##########
 
@@ -52,21 +51,10 @@ def main():
     backend = IBMQ_credentials.get_local_simulator()
     execute_opts = {'shots': 1024}
 
-    dist, oneb, twob, energy = Utils.extract_data(filename, datapath)
-
-
-    # print('distance: ', dist, '\none_body: ', oneb, '\ntwo_body: ', twob, '\nenergy: ', energy)
-
     h2_orbitals = 4
 
-    state_circuit = qchem.create_initial_quantum_circuit(h2_orbitals)
-
-
-    annihilators = qchem.annihilation_operators_with_jordan_wigner(h2_orbitals)
-    creators = [op.adjoint() for op in annihilators]
-
-    hamiltonian = qchem.build_qubit_hamiltonian(oneb, twob, annihilators, creators)
-    minimized_energy = qchem.minimize_expectation_value(hamiltonian, state_circuit, [0], backend, minimize, execute_opts)
+    distance_energy_dict = qchem.get_minimal_energy_by_distance(file_paths, h2_orbitals, backend, execute_opts)
+    print(distance_energy_dict)
 
 
     return 0

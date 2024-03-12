@@ -55,15 +55,8 @@ def execute_job(circuit: List[QuantumCircuit] , backend: Backend, execute_opts: 
 def bitstring_to_bits(bit_string: str) -> NDArray[np.bool_]:
     return np.array([x == '1' for x in bit_string], dtype=bool)[::-1]
 
-def create_all_pauli(num_qubits: int) -> PauliList:
-    pauli_bits_combinations = product([0,1], repeat=num_qubits)
-    pauli_zx_permutations = list(product(pauli_bits_combinations, repeat=2))
-    pauli_list = [Pauli(pauli) for pauli in pauli_zx_permutations]
-    return PauliList(pauli_list)
 
-
-def extract_data(filename:str, datapath: str):
-    filepath = os.path.join(datapath, filename)
+def extract_data(filepath:str, datapath: str):
     npzfile = np.load(filepath)
     return npzfile["distance"], npzfile["one_body"], npzfile["two_body"], npzfile["nuclear_repulsion_energy"]
 
