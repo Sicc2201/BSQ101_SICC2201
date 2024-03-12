@@ -127,13 +127,12 @@ creation_operators: List[SparsePauliOp],
 
     for i in range(len(annihilation_operators)):
         for j in range(len(annihilation_operators)):
-            one_body_sum += one_body[i][j]*creation_operators[i]*annihilation_operators[j]
-
-    for i in range(len(annihilation_operators)):
-        for j in range(len(annihilation_operators)):  
+            one_body_sum += one_body[i][j]*creation_operators[i].compose(annihilation_operators[j])
             for k in range(len(annihilation_operators)):
                 for l in range(len(annihilation_operators)): 
-                    two_body_sum += two_body[i][j][k][l]*creation_operators[i]*creation_operators[j]*annihilation_operators[k]*annihilation_operators[l]
+                    a_ij = creation_operators[i].compose(creation_operators[j])
+                    a_kl = annihilation_operators[k].compose(annihilation_operators[l])
+                    two_body_sum += two_body[i][j][k][l]*a_ij.compose(a_kl)
 
     qubit_hamiltonian = one_body_sum + 0.5*two_body_sum
     
