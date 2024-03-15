@@ -18,7 +18,7 @@ C'est ce fichier qui sera lancé par l'utilisateur pour lancer l'algorithme.
 
 ###########################################################################
 import os
-
+import time
 
 # Custom libraries
 import IBMQ_credentials
@@ -34,6 +34,7 @@ import Utils
 
 
 def main():
+    start_time = time.time()
 
     ibmq_token = "put your token here"
     backend_name = "ibmq_qasm_simulator"
@@ -49,12 +50,17 @@ def main():
     #_, backend = IBMQ_credentials.ibmq_provider(backend_name)
 
     backend = IBMQ_credentials.get_local_simulator()
-    execute_opts = {'shots': 1024}
+    execute_opts = {'shots': 512}
 
     h2_orbitals = 4
 
-    distance_energy_dict = qchem.get_minimal_energy_by_distance(file_paths, h2_orbitals, backend, execute_opts)
-    print(distance_energy_dict)
+    distances, energy, exact_energy = qchem.get_minimal_energy_by_distance(file_paths, h2_orbitals, backend, execute_opts)
+    Utils.validate_results()
+
+    end_time = time.time()
+    print('Runtime: ', end_time-start_time, 'sec')
+    energy = Utils.plot_results(distances, energy)
+    print('minimal energy: ', min(energy))
 
 
     return 0

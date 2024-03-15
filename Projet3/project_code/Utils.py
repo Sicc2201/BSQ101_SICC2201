@@ -35,10 +35,8 @@ from qiskit.circuit.library import ZGate, HGate, XGate, YGate, SGate
 import numpy as np
 import os
 from numpy.typing import NDArray
-from itertools import product
-from qiskit.quantum_info import Pauli, PauliList
 from typing import List
-import random
+import matplotlib.pyplot as plt
 
 ###########################################################################
 
@@ -56,8 +54,25 @@ def bitstring_to_bits(bit_string: str) -> NDArray[np.bool_]:
     return np.array([x == '1' for x in bit_string], dtype=bool)[::-1]
 
 
-def extract_data(filepath:str, datapath: str):
+def extract_data(filepath:str):
     npzfile = np.load(filepath)
     return npzfile["distance"], npzfile["one_body"], npzfile["two_body"], npzfile["nuclear_repulsion_energy"]
 
 
+def plot_results(distances, results):
+    #distances = list(data.keys())
+    #optimized_results = list(data.values())
+    energy = [abs(result['fun']) for result in results]
+
+    plt.scatter(distances, energy)
+    plt.xlabel('distance')
+    plt.ylabel('energy')
+    plt.title('energy of hamiltonian by distance')
+    plt.grid(True)
+    plt.show()
+
+    return energy
+
+def validate_results(estimated_value, exact_value):
+    
+    return
