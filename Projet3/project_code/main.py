@@ -23,7 +23,6 @@ import time
 # Custom libraries
 import IBMQ_credentials
 import Quantum_chemistry as qchem
-import Pauli_operations as po
 import Utils
 
 ###########################################################################
@@ -59,13 +58,13 @@ def main():
 
     end_time = time.time()
     print('Runtime: ', end_time-start_time, 'sec')
-    energy = Utils.plot_results(distances, energy)
+    estimated_energy = Utils.plot_results(distances, energy)
     print('minimal energy: ', min(energy))
 
     exact_energy = Utils.plot_results(distances, exact_energy)
     print('minimal exact energy: ', min(exact_energy))
 
-    error = Utils.validate_results(energy, exact_energy)
+    error = Utils.validate_results(estimated_energy, exact_energy)
     print('error: ', error)
     return 0
 
