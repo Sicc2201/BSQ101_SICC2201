@@ -73,6 +73,8 @@ def plot_results(distances, results):
 
     return energy
 
-def validate_results(estimated_value, exact_value):
+def validate_results(estimated_values, exact_values):
+
+    mean_squared_error = np.mean((estimated_values - exact_values) ** 2)
     
-    return
+    return mean_squared_error

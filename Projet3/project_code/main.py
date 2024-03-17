@@ -55,14 +55,18 @@ def main():
     h2_orbitals = 4
 
     distances, energy, exact_energy = qchem.get_minimal_energy_by_distance(file_paths, h2_orbitals, backend, execute_opts)
-    Utils.validate_results()
+    Utils.validate_results(energy, exact_energy)
 
     end_time = time.time()
     print('Runtime: ', end_time-start_time, 'sec')
     energy = Utils.plot_results(distances, energy)
     print('minimal energy: ', min(energy))
 
+    exact_energy = Utils.plot_results(distances, exact_energy)
+    print('minimal exact energy: ', min(exact_energy))
 
+    error = Utils.validate_results(energy, exact_energy)
+    print('error: ', error)
     return 0
 
 
