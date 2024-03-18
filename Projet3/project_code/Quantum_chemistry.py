@@ -57,6 +57,7 @@ execute_opts : dict = dict()) -> Union[NDArray[np.float32], ArrayLike, NDArray[n
     #distance_energy = {}
     distances = np.empty(len(filePath), dtype=float)
     optimized_results = np.empty(len(filePath), dtype=object)
+    minimal_exact_eigenvalues = np.empty(len(filePath), dtype=object)
     state_circuit = create_initial_quantum_circuit(num_orbitals)
     
     annihilators = annihilation_operators_with_jordan_wigner(num_orbitals)
@@ -65,14 +66,14 @@ execute_opts : dict = dict()) -> Union[NDArray[np.float32], ArrayLike, NDArray[n
     for index, file in enumerate(filePath):
         dist, oneb, twob, energy = Utils.extract_data(file)
         hamiltonian = build_qubit_hamiltonian(oneb, twob, annihilators, creators)
+        print(hamiltonian.paulis)
         minimized_result = minimize_expectation_value(hamiltonian, state_circuit, [0], backend, minimize, execute_opts)
-        #distance_energy[float(dist)] = minimized_result
         distances[index] = float(dist)
         optimized_results[index] = minimized_result
 
-        minimal_exact_eigenvalue = exact_minimal_eigenvalue(hamiltonian)
+        minimal_exact_eigenvalues[index] = exact_minimal_eigenvalue(hamiltonian)
 
-    return distances, optimized_results, minimal_exact_eigenvalue
+    return distances, optimized_results, minimal_exact_eigenvalues
 
 def create_initial_quantum_circuit(num_qubits : int) -> QuantumCircuit:
     qc = QuantumCircuit(num_qubits)
@@ -119,7 +120,9 @@ def annihilation_operators_with_jordan_wigner(num_states: int) -> List[SparsePau
 def estimate_energy(hamiltonian, state_circuit, backend, execute_opts):
 
     estimated_values = po.estimate_expectation_values(hamiltonian.paulis, state_circuit, backend, execute_opts)
-    estimated_energy = np.sum(np.multiply(hamiltonian.coeffs, estimated_values))
+    print('estimated_values: ', estimated_values)
+    estimated_energy = np.dot(hamiltonian.coeffs, estimated_values)
+    print('estimated_energy', estimated_energy)
     return estimated_energy
 
 def build_qubit_hamiltonian(
@@ -157,45 +160,6 @@ creation_operators: List[SparsePauliOp],
     
     return simplified_qubit_hamiltonian
 
-# def build_qubit_hamiltonian(
-#     one_body: NDArray[np.complex_],
-#     two_body: NDArray[np.complex_],
-#     annihilation_operators: List[SparsePauliOp],
-#     creation_operators: List[SparsePauliOp],
-# ) -> SparsePauliOp:
-#     """
-#     Build a qubit Hamiltonian from the one body and two body fermionic Hamiltonians.
-#     Args:
-#     one_body (np.ndarray): The matrix for the one body Hamiltonian
-#     two_body (np.ndarray): The array for the two body Hamiltonian
-#     annihilation_operators (List[SparsePauliOp]): List of sums of two Pauli strings
-#     creation_operators (List[SparsePauliOp]): List of sums of two Pauli strings (adjoint of
-#     annihilation_operators)
-#     Returns:
-#     SparsePauliOp: The total Hamiltonian as a sum of Pauli strings
-#     """
-#     one_body_sum = np.sum(one_body[i, j] * creation_operators[i].compose(annihilation_operators[j])
-#                           for i in range(len(annihilation_operators))
-#                           for j in range(len(annihilation_operators)))
-
-#     a_ij = np.array([creation_operators[i].compose(creation_operators[j])
-#                      for i in range(len(annihilation_operators))
-#                      for j in range(len(annihilation_operators))])
-
-#     a_kl = np.array([annihilation_operators[k].compose(annihilation_operators[l])
-#                      for k in range(len(annihilation_operators))
-#                      for l in range(len(annihilation_operators))])
-
-#     two_body_sum = np.sum(two_body[i, j, k, l] * a_ij[i].compose(a_kl[j])
-#                           for i in range(len(annihilation_operators))
-#                           for j in range(len(annihilation_operators))
-#                           for k in range(len(annihilation_operators))
-#                           for l in range(len(annihilation_operators)))
-
-#     qubit_hamiltonian = one_body_sum + 0.5 * two_body_sum
-#     simplified_qubit_hamiltonian = qubit_hamiltonian.simplify()
-    
-#     return simplified_qubit_hamiltonian
 
 def minimize_expectation_value(
 observable: SparsePauliOp,

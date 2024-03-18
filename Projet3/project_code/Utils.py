@@ -59,10 +59,7 @@ def extract_data(filepath:str):
     return npzfile["distance"], npzfile["one_body"], npzfile["two_body"], npzfile["nuclear_repulsion_energy"]
 
 
-def plot_results(distances, results):
-    #distances = list(data.keys())
-    #optimized_results = list(data.values())
-    energy = [abs(result['fun']) for result in results]
+def plot_results(distances, energy):
 
     plt.scatter(distances, energy)
     plt.xlabel('distance')
@@ -71,7 +68,6 @@ def plot_results(distances, results):
     plt.grid(True)
     plt.show()
 
-    return energy
 
 def validate_results(estimated_values, exact_values):
 
