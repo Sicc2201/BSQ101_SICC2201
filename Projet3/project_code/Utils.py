@@ -68,7 +68,6 @@ def plot_results(distances, energy):
     plt.grid(True)
     plt.show()
 
-
 def validate_results(estimated_values, exact_values):
 
     mean_squared_error = np.mean((estimated_values - exact_values) ** 2)

@@ -54,9 +54,9 @@ num_orbitals: int,
 backend: Backend,
 execute_opts : dict = dict()) -> Union[NDArray[np.float32], ArrayLike, NDArray[np.float32]]:
     
-    #distance_energy = {}
     distances = np.empty(len(filePath), dtype=float)
     optimized_results = np.empty(len(filePath), dtype=object)
+    minimal_exact_eigenvalues = np.empty(len(filePath), dtype=object)
     minimal_exact_eigenvalues = np.empty(len(filePath), dtype=object)
     state_circuit = create_initial_quantum_circuit(num_orbitals)
     
@@ -117,14 +117,6 @@ def annihilation_operators_with_jordan_wigner(num_states: int) -> List[SparsePau
 
     return annihilation_operators
 
-def estimate_energy(hamiltonian, state_circuit, backend, execute_opts):
-
-    estimated_values = po.estimate_expectation_values(hamiltonian.paulis, state_circuit, backend, execute_opts)
-    print('estimated_values: ', estimated_values)
-    estimated_energy = np.dot(hamiltonian.coeffs, estimated_values)
-    print('estimated_energy', estimated_energy)
-    return estimated_energy
-
 def build_qubit_hamiltonian(
 one_body: NDArray[np.complex_],
 two_body: NDArray[np.complex_],
@@ -160,7 +152,6 @@ creation_operators: List[SparsePauliOp],
     
     return simplified_qubit_hamiltonian
 
-
 def minimize_expectation_value(
 observable: SparsePauliOp,
 ansatz: QuantumCircuit,
@@ -188,7 +179,9 @@ execute_opts: dict = {},
     
     def cost_function(params):
         ansatz.bind_parameters(params)
-        return estimate_energy(observable, ansatz.bind_parameters(params), backend, execute_opts)
+        estimated_values = po.estimate_expectation_values(observable.paulis, ansatz, backend, execute_opts)
+        estimated_energy = np.dot(observable.coeffs, estimated_values)
+        return estimated_energy
 
     return minimizer(cost_function, starting_params, method='COBYLA')
 

@@ -57,6 +57,7 @@ def main():
 
     end_time = time.time()
     print('Runtime: ', end_time-start_time, 'sec')
+
     estimated_energy = [result['fun'] for result in energy]
     Utils.plot_results(distances, estimated_energy)
     print('minimal energy: ', min(estimated_energy))
