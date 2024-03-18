@@ -66,7 +66,7 @@ execute_opts : dict = dict()) -> Union[NDArray[np.float32], ArrayLike, NDArray[n
     for index, file in enumerate(filePath):
         dist, oneb, twob, energy = Utils.extract_data(file)
         hamiltonian = build_qubit_hamiltonian(oneb, twob, annihilators, creators)
-        print(hamiltonian.paulis)
+        #print(hamiltonian.paulis)
         minimized_result = minimize_expectation_value(hamiltonian, state_circuit, [0], backend, minimize, execute_opts)
         distances[index] = float(dist)
         optimized_results[index] = minimized_result
@@ -178,8 +178,7 @@ execute_opts: dict = {},
     """
     
     def cost_function(params):
-        ansatz.bind_parameters(params)
-        estimated_values = po.estimate_expectation_values(observable.paulis, ansatz, backend, execute_opts)
+        estimated_values = po.estimate_expectation_values(observable.paulis, ansatz.bind_parameters(params), backend, execute_opts)
         estimated_energy = np.dot(observable.coeffs, estimated_values)
         return estimated_energy
 
