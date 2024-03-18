@@ -64,6 +64,7 @@ execute_opts : dict = dict()) -> Union[NDArray[np.float32], ArrayLike, NDArray[n
     creators = [op.adjoint() for op in annihilators]
 
     for index, file in enumerate(filePath):
+        print('processing file: ', index + 1, ' of ', len(filePath))
         dist, oneb, twob, energy = Utils.extract_data(file)
         hamiltonian = build_qubit_hamiltonian(oneb, twob, annihilators, creators)
         #print(hamiltonian.paulis)
