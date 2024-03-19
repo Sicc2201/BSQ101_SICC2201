@@ -37,7 +37,7 @@
 ###########################################################################
 from qiskit import QuantumCircuit
 from qiskit.providers.backend import Backend
-from qiskit.quantum_info import Pauli, PauliList
+from qiskit.quantum_info import Pauli, PauliList, SparsePauliOp
 from typing import Tuple
 import numpy as np
 from numpy.typing import NDArray
@@ -90,8 +90,6 @@ def estimate_expectation_values(
     state_circuit: QuantumCircuit,
     backend: Backend,
     execute_opts : dict = dict()) -> NDArray[np.float_]:
-    print(pauli_list)
-    print(state_circuit.num_qubits)
 
     jobs = np.empty(len(pauli_list), dtype=object)
     diag_pauli_list = np.empty(len(pauli_list), dtype=object)
@@ -104,3 +102,21 @@ def estimate_expectation_values(
     results = Utils.execute_job(jobs, backend, execute_opts)
     expectation_values = [diag_pauli_expectation_value(diag_pauli, counts) for diag_pauli, counts in zip(diag_pauli_list, results.get_counts())]
     return expectation_values
+
+
+# À ne pas prendre en compte, tentative d'optimisation
+'''
+    pauli_only_IZ_done = False
+    jobs = np.empty(len(pauli_list), dtype=object)
+    diag_pauli_list = np.empty(len(pauli_list), dtype=object)
+    for index, pauli in enumerate(pauli_list):
+        if ~pauli_only_IZ_done and np.all(~pauli.x):
+            if np.all(~pauli.z):
+                expectation_values[index] = 1.0
+            diag_pauli, pauli_qc = diagonalize_pauli_with_circuit(pauli)
+            pauli_measurement = measure_pauli_circuit(state_circuit, pauli_qc)
+            jobs[index] = pauli_measurement
+            diag_pauli_list[index] = diag_pauli
+            pauli_only_IZ_done = True
+
+'''
