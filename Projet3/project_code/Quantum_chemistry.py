@@ -9,19 +9,8 @@
 '''
 # Description: 
 
-Ce fichier contient toutes fonctions qui gèrent le processus.
-# Methods:
+Ce fichier contient toutes fonctions qui gèrent le processus de chimie quantique.
 
-- state_tomography(
-    state_circuit: QuantumCircuit,
-    backend: Backend,
-    execute_opts : dict = dict()) -> NDArray[np.complex_]: Gère la structure de la tomographie.
-
--  calculate_density_matrix(pauli_list: PauliList, expectation_values: List): Calcule la matrice de densité en multipliant la valeur moyenne des chaînes de
-Pauli avec la chaîne de Pauli associée
-
-- calculate_stateVector(density_matrix) : Calcule le vecteur d'etat en trouvant le vecteur propre associé à la valeur propre la
-plus grande de la matrice de densité du système.
 '''
 
 ###########################################################################
@@ -83,9 +72,9 @@ def create_initial_quantum_circuit(num_qubits : int) -> QuantumCircuit:
     '''
     Build a quantum circuit.
     Args:
-    one_body (NDArray[np.complex_]): 
+    num_qubits (int): the number of qubits (number of orbitals) to build the circuit
     Returns:
-    SparsePauliOp: The total Hamiltonian as a sum of Pauli strings
+    QuantumCircuit: The quantum circuit reprensenting the electrons occupation states
 
     '''
     qc = QuantumCircuit(num_qubits)
