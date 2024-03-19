@@ -53,20 +53,21 @@ def main():
 
     h2_orbitals = 4
 
-    distances, energy, exact_energy = qchem.get_minimal_energy_by_distance(file_paths, h2_orbitals, backend, execute_opts)
+    distances, estimated_energy_from_minimizer, exact_energy, repulsion_energy = qchem.get_dissociation_curve_parameters(file_paths, h2_orbitals, backend, execute_opts)
 
     end_time = time.time()
     print('Runtime: ', end_time-start_time, 'sec')
 
-    estimated_energy = [result['fun'] for result in energy]
-    Utils.plot_results(distances, estimated_energy)
-    print('minimal energy: ', min(estimated_energy))
+    estimated_energy = [result['fun'] for result in estimated_energy_from_minimizer]
+    estimated_dissociation_curve = qchem.add_repulsion_energy(estimated_energy, repulsion_energy)
+    Utils.plot_results(distances, estimated_dissociation_curve)
+    print('minimal energy: ', min(estimated_dissociation_curve))
 
-
+    exact_dissociation_curve = qchem.add_repulsion_energy(exact_energy, repulsion_energy)
     Utils.plot_results(distances, exact_energy)
-    print('minimal exact energy: ', min(exact_energy))
+    print('minimal exact energy: ', min(exact_dissociation_curve))
 
-    error = Utils.validate_results(estimated_energy, exact_energy)
+    error = Utils.validate_results(estimated_dissociation_curve, exact_dissociation_curve)
     print('error: ', error)
     return 0
 
