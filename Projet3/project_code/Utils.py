@@ -31,9 +31,7 @@ This file contains all general methods that needs to be called to create the cir
 
 from qiskit import transpile, QuantumCircuit, assemble
 from qiskit.providers.backend import Backend
-from qiskit.circuit.library import ZGate, HGate, XGate, YGate, SGate
 import numpy as np
-import os
 from numpy.typing import NDArray
 from typing import List
 import matplotlib.pyplot as plt
@@ -45,9 +43,13 @@ import matplotlib.pyplot as plt
 ###########################################################################
 
 def execute_job(circuit: List[QuantumCircuit] , backend: Backend, execute_opts: dict) -> dict:
-    transpiled_qc = transpile(list(circuit), backend)
-    queue_job = assemble(transpiled_qc)
-    job = backend.run(queue_job, **execute_opts)
+    if len(circuit) != 1:
+        transpiled_qc = transpile(list(circuit), backend)
+        queue_job = assemble(transpiled_qc)
+        job = backend.run(queue_job, **execute_opts)
+    else:
+        transpiled_qc = transpile(circuit[0], backend)
+        job = backend.run(transpiled_qc, **execute_opts)
     return job.result()
 
 def bitstring_to_bits(bit_string: str) -> NDArray[np.bool_]:

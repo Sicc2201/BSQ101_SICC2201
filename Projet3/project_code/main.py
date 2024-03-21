@@ -64,7 +64,7 @@ def main():
     print('minimal energy: ', min(estimated_dissociation_curve))
 
     exact_dissociation_curve = qchem.add_repulsion_energy(exact_energy, repulsion_energy)
-    Utils.plot_results(distances, exact_energy)
+    Utils.plot_results(distances, exact_dissociation_curve)
     print('minimal exact energy: ', min(exact_dissociation_curve))
 
     error = Utils.validate_results(estimated_dissociation_curve, exact_dissociation_curve)

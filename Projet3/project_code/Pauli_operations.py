@@ -99,24 +99,47 @@ def estimate_expectation_values(
         jobs[index] = pauli_measurement
         diag_pauli_list[index] = diag_pauli
 
+
     results = Utils.execute_job(jobs, backend, execute_opts)
     expectation_values = [diag_pauli_expectation_value(diag_pauli, counts) for diag_pauli, counts in zip(diag_pauli_list, results.get_counts())]
     return expectation_values
 
 
-# À ne pas prendre en compte, tentative d'optimisation
-'''
+"""
     pauli_only_IZ_done = False
-    jobs = np.empty(len(pauli_list), dtype=object)
-    diag_pauli_list = np.empty(len(pauli_list), dtype=object)
+    expectation_values = np.full(len(pauli_list), np.nan)
+    XY_jobs = []
+    IZ_job = []
+    XY_diag_pauli_list = []
+    index_IZ_pauli = []
+    XY_job_indices = []
     for index, pauli in enumerate(pauli_list):
-        if ~pauli_only_IZ_done and np.all(~pauli.x):
-            if np.all(~pauli.z):
+        if np.all(~pauli.x): # if only IZ
+            index_IZ_pauli.append(index)
+
+            if np.all(~pauli.z): # if only IIII
                 expectation_values[index] = 1.0
+
+            elif ~pauli_only_IZ_done:
+                diag_pauli, pauli_qc = diagonalize_pauli_with_circuit(pauli)
+                pauli_measurement = measure_pauli_circuit(state_circuit, pauli_qc)
+                IZ_job.append(pauli_measurement)
+                
+        else:
             diag_pauli, pauli_qc = diagonalize_pauli_with_circuit(pauli)
             pauli_measurement = measure_pauli_circuit(state_circuit, pauli_qc)
-            jobs[index] = pauli_measurement
-            diag_pauli_list[index] = diag_pauli
-            pauli_only_IZ_done = True
+            XY_jobs.append(pauli_measurement)
+            XY_diag_pauli_list.append(diag_pauli)
+            XY_job_indices.append(index)
 
-'''
+    XY_results = Utils.execute_job(XY_jobs, backend, execute_opts)
+    IZ_results = Utils.execute_job(IZ_job, backend, execute_opts)
+
+    for diag_pauli, counts, index in zip(XY_diag_pauli_list, XY_results.get_counts(), XY_job_indices):
+        expectation_values[index] = diag_pauli_expectation_value(diag_pauli, counts)
+    
+    for index, value in enumerate(expectation_values): 
+        if np.isnan(expectation_values[index]):
+            expectation_values[index] = diag_pauli_expectation_value(Pauli('ZZZZ'), IZ_results.get_counts()[0])
+
+"""

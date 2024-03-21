@@ -44,6 +44,7 @@ backend: Backend,
 execute_opts : dict = dict()) -> Union[NDArray[np.float32], ArrayLike, NDArray[np.float32]]:
     
     distances = np.empty(len(data_file_Paths), dtype=float)
+    repulsions = np.empty(len(data_file_Paths), dtype=float)
     optimized_results = np.empty(len(data_file_Paths), dtype=object)
     minimal_exact_eigenvalues = np.empty(len(data_file_Paths), dtype=float)
     state_circuit = create_initial_quantum_circuit(num_orbitals)
@@ -58,13 +59,14 @@ execute_opts : dict = dict()) -> Union[NDArray[np.float32], ArrayLike, NDArray[n
         #print(hamiltonian.paulis)
         minimized_result = minimize_expectation_value(hamiltonian, state_circuit, [0], backend, minimize, execute_opts)
         distances[index] = float(distance)
+        repulsions[index] = float(repulsion_energy)
         optimized_results[index] = minimized_result
 
         minimal_exact_eigenvalues[index] = exact_minimal_eigenvalue(hamiltonian)
 
-    return distances, optimized_results, minimal_exact_eigenvalues, repulsion_energy
+    return distances, optimized_results, minimal_exact_eigenvalues, repulsions
 
-def add_repulsion_energy(original_system: NDArray[np.float32], repulsion_energy_list):
+def add_repulsion_energy(original_system: NDArray[np.float32], repulsion_energy_list: NDArray[np.float32]) -> NDArray[np.float32]:
     return np.add(original_system, repulsion_energy_list)
 
 
@@ -100,21 +102,16 @@ def annihilation_operators_with_jordan_wigner(num_states: int) -> List[SparsePau
     List[SparsePauliOp]: The annihilation operators
     """
 
-    annihilation_operators = np.empty(num_states, dtype=SparsePauliOp)
-    z1_bits = np.zeros(num_states, dtype=bool)
-    z2_bits = np.zeros(num_states, dtype=bool)
+    annihilation_operators = []
 
-    for index in range(num_states):
-        x1_bits = np.zeros(num_states, dtype=bool)
-        x1_bits[index] = True
-        z2_bits[index] = True
+    z1_bits = np.tri(num_states, num_states, -1)
+    z2_bits = np.tri(num_states, num_states, 0)
 
-        if index != 0:
-            z1_bits[index - 1] = True
-            z2_bits[index - 1] = True
-        
-        paulis = PauliList.from_symplectic([z1_bits, z2_bits], [x1_bits, x1_bits])
-        annihilation_operators[index] = SparsePauliOp(paulis, [0.5, 0.5j])
+    x_bits = np.eye(num_states, num_states, 0)
+
+    for z1, z2, x in zip(z1_bits, z2_bits, x_bits): 
+        paulis = PauliList.from_symplectic([z1, z2], [x, x])
+        annihilation_operators.append(SparsePauliOp(paulis, [0.5, 0.5j]))
 
     return annihilation_operators
 
