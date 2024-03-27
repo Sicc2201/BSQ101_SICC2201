@@ -3,7 +3,7 @@
 
 # Titre: Quantum_chemistry.py
 # Author: Christopher Sicotte (SICC2201)
-# last modified: 15/02/2024
+# last modified: 26/03/2024
 
 ##########################################################################
 '''
@@ -41,18 +41,64 @@ def get_dissociation_curve_parameters(
 data_file_Paths: List[str],
 num_orbitals: int,
 backend: Backend,
-execute_opts : dict = dict()) -> Union[NDArray[np.float32], ArrayLike, NDArray[np.float32]]:
+execute_opts : dict = dict()) -> Union[NDArray[np.float32], ArrayLike, NDArray[np.float32], NDArray[np.float32]]:
+    """
+    Manage the structure of the dissociation curve.
+    Args:
+    data_file_paths (NList[str]): File path that contains the data.
+    num_orbitals (int): The number of orbitals spins of the molecule.
+    backend (Backend): The backend to execute the circuit.
+    execute_opts (dict): Dictionnary of execution options.
+ 
+    Returns:
+    NDArray[np.float32]: The interatomic distances
+    NDArray[OptimizedResults]: The optimized results from the minimizer
+    NDArray[np.float32]: The exact eigenvalues of the hamiltonians
+    NDArray[np.float32]: The nuclear repulsion energy
+    """
     
+    state_circuit = create_initial_quantum_circuit(num_orbitals)
+    
+    annihilators = annihilation_operators_with_jordan_wigner(num_orbitals)
+
+    return calculate_hamiltonian_energy(data_file_Paths, annihilators, state_circuit, backend, execute_opts)
+
+def add_repulsion_energy(original_system: NDArray[np.float32], repulsion_energy_list: NDArray[np.float32]) -> NDArray[np.float32]:
+    """
+    Add the nuclear repulsion energy to the minimal electronic energy.
+    Args:
+    original_system (NDArray[np.float32]): The minimal electronic energy
+    repulsion_energy_list (NDArray[np.float32]): The nuclear energy to add.
+ 
+    Returns:
+    NDArray[np.float32]: minimal molecular energy
+
+    """   
+    return np.add(original_system, repulsion_energy_list)
+
+def calculate_hamiltonian_energy(data_file_Paths: str, annihilators: List[SparsePauliOp], state_circuit: QuantumCircuit, backend: Backend, execute_opts: dict):
+    """
+    Calculate the minimal energy of hamiltonians for every files.
+    Args:
+    data_file_paths (NList[str]): File paths that contains the data.
+    annihilators (List[SparsePauliOp]): list of all the annihilator operators.
+    state_circuit (QuantumCircuit): The quantum circuit that describe the occupation states of the electrons.
+    backend (Backend): The backend to execute the circuit.
+    execute_opts (dict): Dictionnary of execution options.
+ 
+    Returns:
+    NDArray[np.float32]: The interatomic distances
+    NDArray[OptimizedResults]: The optimized results from the minimizer
+    NDArray[np.float32]: The exact eigenvalues of the hamiltonians
+    NDArray[np.float32]: The nuclear repulsion energy
+    """
     distances = np.empty(len(data_file_Paths), dtype=float)
     repulsions = np.empty(len(data_file_Paths), dtype=float)
     optimized_results = np.empty(len(data_file_Paths), dtype=object)
     minimal_exact_eigenvalues = np.empty(len(data_file_Paths), dtype=float)
-    state_circuit = create_initial_quantum_circuit(num_orbitals)
-    
-    annihilators = annihilation_operators_with_jordan_wigner(num_orbitals)
     creators = [op.adjoint() for op in annihilators]
-
     for index, file in enumerate(data_file_Paths):
+        
         print('processing file: ', index + 1, ' of ', len(data_file_Paths))
         distance, one_body, two_body, repulsion_energy = Utils.extract_data(file)
         hamiltonian = build_qubit_hamiltonian(one_body, two_body, annihilators, creators)
@@ -65,10 +111,6 @@ execute_opts : dict = dict()) -> Union[NDArray[np.float32], ArrayLike, NDArray[n
         minimal_exact_eigenvalues[index] = exact_minimal_eigenvalue(hamiltonian)
 
     return distances, optimized_results, minimal_exact_eigenvalues, repulsions
-
-def add_repulsion_energy(original_system: NDArray[np.float32], repulsion_energy_list: NDArray[np.float32]) -> NDArray[np.float32]:
-    return np.add(original_system, repulsion_energy_list)
-
 
 def create_initial_quantum_circuit(num_qubits : int) -> QuantumCircuit:
     '''
@@ -185,10 +227,8 @@ execute_opts: dict = {},
 def exact_minimal_eigenvalue(observable: SparsePauliOp) -> float:
     """
     Computes the minimal eigenvalue of an observable.
-
     Args:
     observable (SparsePauliOp): The observable to diagonalize.
-
     Returns:
     float: The minimal eigenvalue of the observable.
     """

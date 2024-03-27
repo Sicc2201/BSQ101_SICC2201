@@ -2,7 +2,7 @@
 
 # Titre: main.py
 # Author: Christopher Sicotte (SICC2201)
-# last modified: 15/02/2024
+# last modified: 26/03/2024
 
 ##########################################################################
 '''
@@ -33,7 +33,7 @@ import Utils
 
 
 def main():
-    start_time = time.time()
+    # start_time = time.time()
 
     ibmq_token = "put your token here"
     backend_name = "ibmq_qasm_simulator"
@@ -55,20 +55,20 @@ def main():
 
     distances, estimated_energy_from_minimizer, exact_energy, repulsion_energy = qchem.get_dissociation_curve_parameters(file_paths, h2_orbitals, backend, execute_opts)
 
-    end_time = time.time()
-    print('Runtime: ', end_time-start_time, 'sec')
+    # end_time = time.time()
+    # print('Runtime: ', end_time-start_time, 'sec')
 
     estimated_energy = [result['fun'] for result in estimated_energy_from_minimizer]
     estimated_dissociation_curve = qchem.add_repulsion_energy(estimated_energy, repulsion_energy)
-    Utils.plot_results(distances, estimated_dissociation_curve)
+    Utils.plot_results(distances, estimated_dissociation_curve, 'Estimated dissociation curve')
     print('minimal energy: ', min(estimated_dissociation_curve))
 
     exact_dissociation_curve = qchem.add_repulsion_energy(exact_energy, repulsion_energy)
-    Utils.plot_results(distances, exact_dissociation_curve)
+    Utils.plot_results(distances, exact_dissociation_curve, 'Exact dissociation curve')
     print('minimal exact energy: ', min(exact_dissociation_curve))
 
     error = Utils.validate_results(estimated_dissociation_curve, exact_dissociation_curve)
-    print('error: ', error)
+    print('MSE: ', error)
     return 0
 
 
