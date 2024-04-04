@@ -55,12 +55,12 @@ def main():
     num_qubits = 4
     num_terms = 3
     
-    observables = 0
+    observables = qevo.create_observables(num_qubits)
     num_trotter_steps = 4
     time_values = np.arange(0, 10, 0.1)
     print('time_values: ', time_values)
 
-    hamiltonian = qevo.create_hamiltonian(num_terms, num_qubits)
+    hamiltonian = qevo.create_hamiltonian(num_qubits)
     initial_state = qevo.create_initial_state(num_qubits)
 
     exact_evolution_expected_values = qevo.exact_evolution(initial_state, hamiltonian, time_values, observables)

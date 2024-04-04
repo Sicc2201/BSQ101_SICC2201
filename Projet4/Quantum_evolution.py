@@ -138,8 +138,6 @@ num_trotter_steps: int,
 
     return qc
 
-
-
 def random_pauli_op(dimension):
     """
     Generate a random SparsePauliOp of dimension `dimension`.
