@@ -61,9 +61,9 @@ observables: List[SparsePauliOp],
 
     observables_expected_values = np.empty(len(time_values), len(observables))
 
-    energy, base_matrix = diagonalize_hamiltonian(hamiltonian)
+    w, v = diagonalize_hamiltonian(hamiltonian)
 
-    w = time_values[:, None] * energy[:, None]
+    evolve_matrix = np.einsum("sk, ik, jk -> sij", w, v, v.conj())
 
 
 
@@ -71,13 +71,16 @@ observables: List[SparsePauliOp],
     return observables_expected_values
 
 
-def diagonalize_hamiltonian(hamiltonian: SparsePauliOp):
-    eigenvalues, eigenvector = np.linalg.eigh(hamiltonian.to_matrix())
-    return eigenvalues, eigenvector
+def diagonalize_hamiltonian(hamiltonian: SparsePauliOp, time_values: NDArray[np.float_]):
+    a, v = np.linalg.eigh(hamiltonian.to_matrix())
+    energy_matrix = np.diag(a)
 
+    w = time_values[:, None] * energy_matrix[:, None]
 
+    print("diag energy: ", energy_matrix)
+    print("w: ", w)
 
-
+    return w, v
 
 
 
