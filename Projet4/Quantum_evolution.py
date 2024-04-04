@@ -59,9 +59,9 @@ observables: List[SparsePauliOp],
     (len(time_values), len(observables)).
     """
 
-    observables_expected_values = np.empty(len(time_values), len(observables))
+    observables_expected_values = np.empty((len(time_values), len(observables)))
 
-    w, v = diagonalize_hamiltonian(hamiltonian)
+    w, v = diagonalize_hamiltonian(hamiltonian, time_values)
 
     evolve_matrix = np.einsum("sk, ik, jk -> sij", w, v, v.conj())
 
@@ -75,10 +75,12 @@ def diagonalize_hamiltonian(hamiltonian: SparsePauliOp, time_values: NDArray[np.
     a, v = np.linalg.eigh(hamiltonian.to_matrix())
     energy_matrix = np.diag(a)
 
-    w = time_values[:, None] * energy_matrix[:, None]
+    w = time_values[:, None] * a[:, None]
 
-    print("diag energy: ", energy_matrix)
+    print("diag energy: ", a)
     print("w: ", w)
+    print(w.shape)
+    #print(np.all(w - np.diag(np.diag(w)) == 0))
 
     return w, v
 
@@ -182,8 +184,8 @@ def create_initial_state(num_qubits: int):
 def create_observables(num_qubits: int):
     ones = np.ones(num_qubits)
     zeros = np.zeros(num_qubits)
-    pauli_x = Pauli(zeros, ones)
-    pauli_y = Pauli(ones, ones)
-    pauli_z = Pauli(ones, zeros)
+    pauli_x = Pauli((zeros, ones))
+    pauli_y = Pauli((ones, ones))
+    pauli_z = Pauli((ones, zeros))
     return PauliList([pauli_x, pauli_y, pauli_z])
 
