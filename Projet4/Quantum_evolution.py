@@ -148,21 +148,34 @@ def random_pauli_op(dimension):
     pauli_matrix = np.random.choice(pauli_labels, size=dimension)
     return SparsePauliOp.from_label(''.join(pauli_matrix))
 
-def create_hamiltonian(num_terms, num_qubits):
+def create_hamiltonian(num_qubits, density=0.5):
 
     
-    """
-    Generate a random Hamiltonian with `num_terms` terms of dimension `dimension`.
-    """
-    hamiltonian = SparsePauliOp.zeros(num_qubits)  # Start with a zero operator
+    # """
+    # Generate a random Hamiltonian with `num_terms` terms of dimension `dimension`.
+    # """
+    # hamiltonian = SparsePauliOp.zeros(num_qubits)  # Start with a zero operator
 
-    for _ in range(num_terms):
-        coefficient = np.random.uniform(-1, 1)  # Random coefficient between -1 and 1
-        pauli_op = random_pauli_op(num_qubits)
-        term = coefficient * pauli_op
-        hamiltonian += term
+    # for _ in range(num_terms):
+    #     coefficient = np.random.uniform(-1, 1)  # Random coefficient between -1 and 1
+    #     pauli_op = random_pauli_op(num_qubits)
+    #     term = coefficient * pauli_op
+    #     hamiltonian += term
 
-    return hamiltonian
+    # return hamiltonian
+
+    # Generate random Pauli strings
+    pauli_strings = []
+    for _ in range(int(num_qubits * density)):
+        pauli = "".join(np.random.choice(["I", "X", "Y", "Z"]) for _ in range(num_qubits))
+        pauli_strings.append(Pauli(pauli))
+
+    # Generate random coefficients
+    coefficients = np.random.rand(len(pauli_strings))
+
+    # Create SparsePauliOp
+    sparse_pauli_op = SparsePauliOp(pauli_strings, coefficients)
+    return sparse_pauli_op
 
 def create_initial_state(num_qubits: int):
     qc = QuantumCircuit(num_qubits)
