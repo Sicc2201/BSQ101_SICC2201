@@ -23,9 +23,8 @@ from qiskit.circuit import Parameter
 from qiskit.providers.backend import Backend
 from qiskit.quantum_info import Pauli, PauliList, SparsePauliOp
 import numpy as np
-from numpy.typing import NDArray, ArrayLike
-from typing import List, Callable, Union
-from scipy.optimize import OptimizeResult, minimize
+from numpy.typing import NDArray
+from typing import List, Union
 
 #custom library
 import Utils
@@ -65,9 +64,6 @@ observables: List[SparsePauliOp],
 
     evolve_matrix = np.einsum("sk, ik, jk -> sij", w, v, v.conj())
 
-
-
-
     return observables_expected_values
 
 
@@ -83,8 +79,6 @@ def diagonalize_hamiltonian(hamiltonian: SparsePauliOp, time_values: NDArray[np.
     #print(np.all(w - np.diag(np.diag(w)) == 0))
 
     return w, v
-
-
 
 def trotter_evolution(
 initial_state: QuantumCircuit,
@@ -111,9 +105,12 @@ num_trotter_steps: NDArray[np.int_],
     NDArray[np.float_]: The expected values of the observable. Should be of shape
     (len(time_values), len(observables)).
     """
-    observables_expected_values = np.empty(len(time_values), len(observables))
-
-    trotter_circuit = trotter_circuit(hamiltonian, time_values, num_trotter_steps)
+    observables_expected_values = np.empty((len(time_values), len(observables)))
+    
+    for step in num_trotter_steps:
+        for time in time_values:
+            initial_state.compose(trotter_circuit(hamiltonian, time, num_trotter_steps))
+            # mesurer pour tous les obsrvables
 
 
 
@@ -135,9 +132,23 @@ num_trotter_steps: int,
     Returns:
     QuantumCircuit: The circuit of the Trotter evolution operator
     """
+    magnetic_field = hamiltonian.coeffs
+    num_qubits = hamiltonian.num_qubits
+    Rz_param = Parameter("wt")
+    qc = QuantumCircuit(num_qubits)
 
-    qc = QuantumCircuit(1)
+    # only for magnetic field in Z for now
+    if num_qubits > 1:
+        cnot_controls = [(i, i + 1) for i in range(num_qubits - 1)]
+        for control, target in cnot_controls:
+            qc.cx(control, target)
+        qc.rz(Rz_param, num_qubits -  1)
+        for control, target in reversed(cnot_controls):
+            qc.cx(control, target)
+    else:
+        qc.rz(Rz_param, num_qubits -  1)
 
+    qc.bind_parameters(total_duration*magnetic_field[0]/num_trotter_steps)
     return qc
 
 def random_pauli_op(dimension):
@@ -148,25 +159,14 @@ def random_pauli_op(dimension):
     pauli_matrix = np.random.choice(pauli_labels, size=dimension)
     return SparsePauliOp.from_label(''.join(pauli_matrix))
 
-def create_hamiltonian(num_qubits, density=0.5):
-
-    
-    # """
-    # Generate a random Hamiltonian with `num_terms` terms of dimension `dimension`.
-    # """
-    # hamiltonian = SparsePauliOp.zeros(num_qubits)  # Start with a zero operator
-
-    # for _ in range(num_terms):
-    #     coefficient = np.random.uniform(-1, 1)  # Random coefficient between -1 and 1
-    #     pauli_op = random_pauli_op(num_qubits)
-    #     term = coefficient * pauli_op
-    #     hamiltonian += term
-
-    # return hamiltonian
+def create_random_hamiltonian(num_qubits, dimension = 2): 
+    """
+    Generate a random Hamiltonian with `num_terms` terms of dimension `dimension`.
+    """
 
     # Generate random Pauli strings
     pauli_strings = []
-    for _ in range(int(num_qubits * density)):
+    for _ in range(int(num_qubits * dimension)):
         pauli = "".join(np.random.choice(["I", "X", "Y", "Z"]) for _ in range(num_qubits))
         pauli_strings.append(Pauli(pauli))
 
@@ -177,8 +177,27 @@ def create_hamiltonian(num_qubits, density=0.5):
     sparse_pauli_op = SparsePauliOp(pauli_strings, coefficients)
     return sparse_pauli_op
 
-def create_initial_state(num_qubits: int):
+def create_single_spin_hamiltonian(theta: float):
+    return SparsePauliOp(["Z", "Y"], [np.cos(theta)*(-0.5), np.sin(theta)*(-0.2)])
+
+def create_two_spin_hamiltonian(theta: float):
+    return SparsePauliOp(["Z", "Y"], [np.cos(theta)*(-0.5), np.sin(theta)*(-0.2)])
+
+def create_random_initial_state(num_qubits: int):
     qc = QuantumCircuit(num_qubits)
+    return qc
+
+def create_single_spin_initial_state():
+    qc = QuantumCircuit(1)
+    qc.h(0)
+    return qc
+
+def create_two_spin_initial_state():
+    qc = QuantumCircuit(2)
+    qc.h(0)
+    qc.h(1)
+    qc.x(1)
+
     return qc
 
 def create_observables(num_qubits: int):

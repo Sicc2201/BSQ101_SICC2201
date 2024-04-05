@@ -52,16 +52,21 @@ def main():
     backend = IBMQ_credentials.get_local_simulator()
     execute_opts = {'shots': 512}
 
-    num_qubits = 4
-    num_terms = 3
-    
-    observables = qevo.create_observables(num_qubits)
-    num_trotter_steps = 4
+    num_trotter_steps = 10
     time_values = np.arange(0, 10, 0.1)
-    print('time_values: ', time_values)
+    theta = np.pi/5
 
-    hamiltonian = qevo.create_hamiltonian(num_qubits)
-    initial_state = qevo.create_initial_state(num_qubits)
+
+    single_spin_initial_state = qevo.create_single_spin_initial_state()
+    single_spin_hamiltonian = qevo.create_single_spin_hamiltonian(theta)
+    two_spin_initial_state = qevo.create_two_spin_initial_state()
+    two_spin_hamiltonian = qevo.create_two_spin_hamiltonian(theta)
+
+    initial_state = single_spin_initial_state
+    hamiltonian = single_spin_hamiltonian
+
+    observables = qevo.create_observables(initial_state.num_qubits)
+    print(observables)
 
     exact_evolution_expected_values = qevo.exact_evolution(initial_state, hamiltonian, time_values, observables)
     trotter_evolution_expected_values = qevo.trotter_evolution(initial_state, hamiltonian, time_values, observables, num_trotter_steps)
