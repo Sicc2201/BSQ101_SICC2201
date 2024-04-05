@@ -21,7 +21,7 @@ Ce fichier contient toutes fonctions qui gèrent le processus d'évolution d'un 
 from qiskit import QuantumCircuit
 from qiskit.circuit import Parameter
 from qiskit.providers.backend import Backend
-from qiskit.quantum_info import Pauli, PauliList, SparsePauliOp
+from qiskit.quantum_info import Pauli, PauliList, SparsePauliOp, Statevector
 import numpy as np
 from numpy.typing import NDArray
 from typing import List, Union
@@ -62,21 +62,30 @@ observables: List[SparsePauliOp],
 
     w, v = diagonalize_hamiltonian(hamiltonian, time_values)
 
-    evolve_matrix = np.einsum("sk, ik, jk -> sij", w, v, v.conj())
+    b = Statevector(initial_state)
+
+    a0 = v.conj()*b
+
+    a1 = w[0] * a0
+
+    b1 = v * a1
+
+    a2 = w[1] * a1
+
+    #evolve_matrix = np.einsum("sk, ik, jk -> sij", w, v, v.conj())
 
     return observables_expected_values
 
-
 def diagonalize_hamiltonian(hamiltonian: SparsePauliOp, time_values: NDArray[np.float_]):
-    a, v = np.linalg.eigh(hamiltonian.to_matrix())
-    energy_matrix = np.diag(a)
+    e, v = np.linalg.eigh(hamiltonian.to_matrix())
 
-    w = time_values[:, None] * a[:, None]
+    w = time_values[:, None] * e[:, None]
 
-    print("diag energy: ", a)
-    print("w: ", w)
-    print(w.shape)
-    #print(np.all(w - np.diag(np.diag(w)) == 0))
+    evolution_operator = np.exp(w)
+
+    print("diag energy: ", e)
+    # print("w: ", w)
+
 
     return w, v
 
@@ -108,11 +117,11 @@ num_trotter_steps: NDArray[np.int_],
     observables_expected_values = np.empty((len(time_values), len(observables)))
     
     for step in num_trotter_steps:
+        trotter_qc = trotter_circuit(hamiltonian, time, num_trotter_steps)
+
         for time in time_values:
             initial_state.compose(trotter_circuit(hamiltonian, time, num_trotter_steps))
             # mesurer pour tous les obsrvables
-
-
 
     return observables_expected_values
 
