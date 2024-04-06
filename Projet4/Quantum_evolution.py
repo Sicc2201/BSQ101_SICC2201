@@ -119,33 +119,46 @@ num_trotter_steps: NDArray[np.int_],
     estimator = Estimator()
     observables_expected_values = np.empty((len(time_values), len(observables)))
     trotter_circuits = []
-
+    jobs = []
     num_qubits = hamiltonian.num_qubits
 
     # assuming optimization if circuits created only one time since it is the same for every circuit
-    control_sandwich_left = create_control_not_steps(num_qubits, False)
-    control_sandwich_right = create_control_not_steps(num_qubits, True)
-    evolution_operator = create_evolution_operator_circuit(num_qubits)
+    control_operator_qc = create_control_not_steps(num_qubits)
+    evolution_operator_qc = create_evolution_operator_circuit(num_qubits)
 
-    for step in num_trotter_steps:
-        for time in time_values:
-                trotter_qc = initial_state.compose(trotter_circuit(hamiltonian, time, num_trotter_steps, control_sandwich_left, control_sandwich_right, evolution_operator))
-                trotter_circuits.append(trotter_qc)
+    for time in time_values:
+        for step in num_trotter_steps:
+            initial_state += create_trotter_qc(initial_state, hamiltonian, time, num_trotter_steps, control_operator_qc, evolution_operator_qc)
+        jobs.append(estimator.run(initial_state, observables))
 
-
-    job = estimator.run(trotter_circuits, observables)
-            # mesurer pour tous les obsrvables
 
     return observables_expected_values
 
-
-def trotter_circuit(
+def create_trotter_qc(
 hamiltonian: SparsePauliOp,
 total_duration: Union[float, Parameter],
 num_trotter_steps: int,
-control_left,
-control_right,
-evolution_operator
+control_operator_qc,
+evolution_operator_qc
+) -> QuantumCircuit:
+
+    trotter_qc = QuantumCircuit(hamiltonian.num_qubits)
+    for magnetic_field, pauli_list in zip(hamiltonian.coeffs, hamiltonian.paulis):
+        #diagonalise pauli circuit
+        diag_pauli_qc = po.create_diag_pauli_circuit(pauli_list)
+        trotter_qc += trotter_circuit(hamiltonian, total_duration,  num_trotter_steps, control_operator_qc, evolution_operator_qc, magnetic_field, diag_pauli_qc)
+
+    return trotter_qc
+
+
+def trotter_circuit(
+# hamiltonian: SparsePauliOp,
+total_duration: Union[float, Parameter],
+num_trotter_steps: int,
+control_operator_qc,
+evolution_operator_qc,
+magnetic_field,
+diag_operator_circuit
 ) -> QuantumCircuit:
     """
     Construct the QuantumCircuit using the first order Trotter formula.
@@ -158,10 +171,12 @@ evolution_operator
     Returns:
     QuantumCircuit: The circuit of the Trotter evolution operator
     """
-    for magnetic_field, pauli_list in zip(hamiltonian.coeffs, hamiltonian.paulis):
-        diag_pauli_circuits = po.create_diag_pauli_circuit(pauli_list)
-        trotter_qc = control_left.compose(evolution_operator.compose(control_right))
-        trotter_qc.bind_parameters(total_duration*(-2)*magnetic_field/num_trotter_steps)
+
+    evolution_operator_qc.bind_parameters(total_duration*(-2)*magnetic_field/num_trotter_steps)
+    trotter_qc = diag_operator_circuit.inverse() + control_operator_qc.inverse()
+    trotter_qc += evolution_operator_qc
+    trotter_qc += control_operator_qc
+    trotter_qc += diag_operator_circuit
 
     return trotter_qc
 
@@ -235,11 +250,11 @@ def create_two_spin_initial_state():
 
 def create_observables(num_qubits: int):
 
-    zeros = np.zeros(num_qubits)
+    zeros = np.zeros((num_qubits, num_qubits))
     identity = np.eye(num_qubits)
 
-    pauli_z = np.concatenate((zeros, identity), axis=1)
-    pauli_x = np.concatenate((identity, identity), axis=1)
+    pauli_z = np.concatenate((zeros, identity), axis=0)
+    pauli_x = np.concatenate((identity, identity), axis=0)
 
     return PauliList.from_symplectic(pauli_z, pauli_x)
 
