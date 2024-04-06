@@ -103,3 +103,12 @@ def estimate_expectation_values(
     results = Utils.execute_job(jobs, backend, execute_opts)
     expectation_values = [diag_pauli_expectation_value(diag_pauli, counts) for diag_pauli, counts in zip(diag_pauli_list, results.get_counts())]
     return expectation_values
+
+
+def create_diag_pauli_circuit(pauli_list: PauliList):
+
+    diag_pauli_circuits = np.empty(len(pauli_list), dtype=object)
+    for index, pauli in enumerate(pauli_list):
+        diag_pauli, pauli_qc = diagonalize_pauli_with_circuit(pauli)
+        diag_pauli_circuits[index] = pauli_qc
+    return diag_pauli_circuits
