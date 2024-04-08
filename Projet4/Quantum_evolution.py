@@ -61,20 +61,17 @@ observables: List[SparsePauliOp],
     """
 
     observables_expected_values = np.empty((len(time_values), len(observables)))
+    b = np.empty(len(time_values))    
+    estimator = Estimator()
 
-    w, v = diagonalize_hamiltonian(hamiltonian, time_values)
+    exponent_matrix, v = diagonalize_hamiltonian(hamiltonian, time_values)
+    b0 = Statevector(initial_state)
 
-    b = Statevector(initial_state)
+    # for 2 qubits for now
+    b1 = v * exponent_matrix[0] * v.conj() * b0
+    b2 = v * exponent_matrix[1] * v.conj() * b1
 
-    a0 = v.conj()*b
-
-    a1 = w[0] * a0
-
-    b1 = v * a1
-
-    a2 = w[1] * a1
-
-    #evolve_matrix = np.einsum("sk, ik, jk -> sij", w, v, v.conj())
+    # je suis un peu confus opur cette partie, maintenant que j'ai mes state vector pour mes états à chaque temps, qu'est-ce que je veux en extraire?
 
     return observables_expected_values
 
@@ -83,11 +80,9 @@ def diagonalize_hamiltonian(hamiltonian: SparsePauliOp, time_values: NDArray[np.
 
     w = time_values[:, None] * e[:, None]
 
-    evolution_operator = np.exp(w)
+    exponent_matrix = np.exp(-1j * w)
 
-    print("diag energy: ", e)
-
-    return w, v
+    return exponent_matrix, v
 
 def trotter_evolution(
 initial_state: QuantumCircuit,
@@ -116,23 +111,31 @@ num_trotter_steps: NDArray[np.int_],
     """
 
     estimator = Estimator()
-    observables_expected_values = np.empty((len(time_values), len(observables)))
-    jobs = []
+    observables_expected_values = np.array([]) 
+    
     num_qubits = hamiltonian.num_qubits
-    Rz_param = Parameter("wt")
+    
     # assuming optimization if circuits created only one time since it is the same for every circuit
     control_operator_qc = create_control_not_steps(num_qubits)
 
     for time in time_values:
-        print("time : ", time)
+        jobs = []       
         for step in range(num_trotter_steps):
             initial_state &= create_trotter_qc(hamiltonian, time, num_trotter_steps, control_operator_qc)
-            initial_state.draw("mpl")
-            plt.show()
-        job = estimator.run(initial_state, observables)
-        jobs.append(job)
 
-        print("job result", job.result)
+        # pour créer les observables_expected_values, je dois faire une liste de circuits de la taille de la quantité d'observable, 
+        # mais est-ce que tous les circuis sont pareil et estimator se charge d'effectuer les bonne operations sur mes ciurcuits pour calculer les observables? comme j'ai fait?
+        for observable in range(len(observables)):
+            jobs.append(initial_state)
+
+        results = estimator.run(jobs, observables)
+        observables_expected_values = np.concatenate((observables_expected_values, results.result().values))
+        print("obsevables shape: ", observables_expected_values.shape)
+
+
+    observables_expected_values = np.reshape(observables_expected_values, (len(time_values), len(observables)))
+    print(observables_expected_values.shape)
+
     return observables_expected_values
 
 def create_trotter_qc(
@@ -247,11 +250,17 @@ def create_two_spin_initial_state():
 
 def create_observables(num_qubits: int):
 
+    observables = []
     zeros = np.zeros((num_qubits, num_qubits))
     identity = np.eye(num_qubits)
 
     pauli_z = np.concatenate((zeros, identity), axis=0)
+    pauli_z = np.concatenate((pauli_z, identity), axis=0)
     pauli_x = np.concatenate((identity, identity), axis=0)
+    pauli_x = np.concatenate((pauli_x, zeros), axis=0)
 
-    return PauliList.from_symplectic(pauli_z, pauli_x)
+    for z, x in zip(pauli_z, pauli_x):
+        observables.append(SparsePauliOp(PauliList.from_symplectic(z, x)))
+
+    return observables
 

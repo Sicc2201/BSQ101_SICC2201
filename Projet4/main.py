@@ -52,7 +52,7 @@ def main():
     backend = IBMQ_credentials.get_local_simulator()
     execute_opts = {'shots': 512}
 
-    num_trotter_steps = 1
+    num_trotter_steps = 10
     time_values = np.arange(0, 1, 0.1)
     theta = np.pi/5
 
