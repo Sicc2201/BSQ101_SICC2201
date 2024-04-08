@@ -104,9 +104,3 @@ def estimate_expectation_values(
     expectation_values = [diag_pauli_expectation_value(diag_pauli, counts) for diag_pauli, counts in zip(diag_pauli_list, results.get_counts())]
     return expectation_values
 
-def create_diag_pauli_circuit(pauli_list: PauliList):
-    diag_qc = QuantumCircuit(pauli_list.num_qubits)
-    for index, pauli in enumerate(pauli_list):
-        _, pauli_qc = diagonalize_pauli_with_circuit(pauli)
-        diag_qc = diag_qc.compose(pauli_qc)
-    return diag_qc
