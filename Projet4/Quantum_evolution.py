@@ -65,22 +65,34 @@ observables: List[SparsePauliOp],
     estimator = Estimator()
 
     exponent_matrix, v = diagonalize_hamiltonian(hamiltonian, time_values)
-    b0 = Statevector(initial_state)
+    initial_statevector = Statevector(initial_state)
+
+    evolution_operator = np.einsum("ki, sk, kj -> sij", v.conj(), exponent_matrix, v)
+
+    print("U0 shape", evolution_operator.shape)
+
+    evolved_evolution_operator = np.einsum("sij, j-> si", evolution_operator, initial_statevector)
+    print("Ut shape", evolved_evolution_operator.shape)
+
+    
+
 
     # for 2 qubits for now
-    b1 = v * exponent_matrix[0] * v.conj() * b0
-    b2 = v * exponent_matrix[1] * v.conj() * b1
-
-    # je suis un peu confus opur cette partie, maintenant que j'ai mes state vector pour mes états à chaque temps, qu'est-ce que je veux en extraire?
+    # b1 = v * exponent_matrix[0] * v.conj() * b0
+    # b2 = v * exponent_matrix[1] * v.conj() * b1
 
     return observables_expected_values
 
 def diagonalize_hamiltonian(hamiltonian: SparsePauliOp, time_values: NDArray[np.float_]):
     e, v = np.linalg.eigh(hamiltonian.to_matrix())
 
-    w = time_values[:, None] * e[:, None]
+    # w = time_values[:, None] * e[:, None]
+
+    w = np.einsum("s, i -> si", time_values, e)
 
     exponent_matrix = np.exp(-1j * w)
+
+    print(exponent_matrix)
 
     return exponent_matrix, v
 
@@ -123,8 +135,6 @@ num_trotter_steps: NDArray[np.int_],
         for step in range(num_trotter_steps):
             initial_state &= create_trotter_qc(hamiltonian, time, num_trotter_steps, control_operator_qc)
 
-        # pour créer les observables_expected_values, je dois faire une liste de circuits de la taille de la quantité d'observable, 
-        # mais est-ce que tous les circuis sont pareil et estimator se charge d'effectuer les bonne operations sur mes ciurcuits pour calculer les observables? comme j'ai fait?
         for observable in range(len(observables)):
             jobs.append(initial_state)
 
@@ -229,7 +239,7 @@ def create_single_spin_hamiltonian(theta: float):
     return SparsePauliOp(["Z", "Y"], [np.cos(theta)*(-0.5), np.sin(theta)*(-0.2)])
 
 def create_two_spin_hamiltonian(theta: float):
-    return SparsePauliOp(["IZ", "IZ"], [1.05, 0.95])
+    return SparsePauliOp(["IZ", "IZ", "XX"], [1.05, 0.95, 0.20])
 
 def create_random_initial_state(num_qubits: int):
     qc = QuantumCircuit(num_qubits)
