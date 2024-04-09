@@ -59,6 +59,7 @@ observables: List[SparsePauliOp],
     NDArray[np.float_]: The expected values of the observable. Should be of shape
     (len(time_values), len(observables)).
     """
+    obervables_matrix = []
 
     observables_expected_values = np.empty((len(time_values), len(observables)))
     b = np.empty(len(time_values))    
@@ -68,13 +69,14 @@ observables: List[SparsePauliOp],
     initial_statevector = Statevector(initial_state)
 
     evolution_operator = np.einsum("ki, sk, kj -> sij", v.conj(), exponent_matrix, v)
-
     print("U0 shape", evolution_operator.shape)
 
     evolved_evolution_operator = np.einsum("sij, j-> si", evolution_operator, initial_statevector)
     print("Ut shape", evolved_evolution_operator.shape)
 
-    
+    for observable in observables:
+        observables_matrix = np.stack(obervables_matrix, observables.to_matrix())
+
 
 
     # for 2 qubits for now
