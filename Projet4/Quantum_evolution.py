@@ -59,39 +59,27 @@ observables: List[SparsePauliOp],
     NDArray[np.float_]: The expected values of the observable. Should be of shape
     (len(time_values), len(observables)).
     """
-    obervables_matrix = []
-
-    observables_expected_values = np.empty((len(time_values), len(observables)))
-    b = np.empty(len(time_values))    
-    estimator = Estimator()
 
     exponent_matrix, v = diagonalize_hamiltonian(hamiltonian, time_values)
     initial_statevector = Statevector(initial_state)
 
-    evolution_operator = np.einsum("ki, sk, kj -> sij", v.conj(), exponent_matrix, v)
+    evolution_operator = np.einsum("ki, sk, kj -> sij", v, exponent_matrix, v.conj())
     print("U0 shape", evolution_operator.shape)
 
     evolved_evolution_operator = np.einsum("sij, j-> si", evolution_operator, initial_statevector)
     print("Ut shape", evolved_evolution_operator.shape)
 
-    for observable in observables:
-        observables_matrix = np.stack(obervables_matrix, observables.to_matrix())
+    observables_matrix = [np.stack(observable.to_matrix()) for observable in observables]
+    print("O shape", len(observables_matrix))
 
-
-
-    # for 2 qubits for now
-    # b1 = v * exponent_matrix[0] * v.conj() * b0
-    # b2 = v * exponent_matrix[1] * v.conj() * b1
+    observables_expected_values = evolved_evolution_operator.dot(observables_matrix).dot(evolved_evolution_operator.conj()) # np.einsum("ki, sk, kj -> sij", evolved_evolution_operator, observables_matrix, evolved_evolution_operator.conj())
+    print("O shape", observables_expected_values.shape)
 
     return observables_expected_values
 
 def diagonalize_hamiltonian(hamiltonian: SparsePauliOp, time_values: NDArray[np.float_]):
     e, v = np.linalg.eigh(hamiltonian.to_matrix())
-
-    # w = time_values[:, None] * e[:, None]
-
     w = np.einsum("s, i -> si", time_values, e)
-
     exponent_matrix = np.exp(-1j * w)
 
     print(exponent_matrix)
@@ -129,16 +117,16 @@ num_trotter_steps: NDArray[np.int_],
     
     num_qubits = hamiltonian.num_qubits
     
-    # assuming optimization if circuits created only one time since it is the same for every circuit
+    # assuming optimization if circuits created only one time since it is the same for every circuit FALSE
     control_operator_qc = create_control_not_steps(num_qubits)
 
-    for time in time_values:
-        jobs = []       
-        for step in range(num_trotter_steps):
-            initial_state &= create_trotter_qc(hamiltonian, time, num_trotter_steps, control_operator_qc)
+    for time, step in time_values, num_trotter_steps:
+        jobs = []
+        
+        evolved_state = initial_state.compose(create_trotter_qc(hamiltonian, time, num_trotter_steps, control_operator_qc))
 
         for observable in range(len(observables)):
-            jobs.append(initial_state)
+            jobs.append(evolved_state)
 
         results = estimator.run(jobs, observables)
         observables_expected_values = np.concatenate((observables_expected_values, results.result().values))
@@ -167,10 +155,9 @@ control_operator_qc
 def trotter_circuit(
 hamiltonian: SparsePauliOp,
 total_duration: Union[float, Parameter],
-num_trotter_steps: int,
-control_operator_qc,
-magnetic_field,
-diag_operator_circuit
+num_trotter_steps: int
+# juste step time pour trotter step
+
 ) -> QuantumCircuit:
     """
     Construct the QuantumCircuit using the first order Trotter formula.
@@ -184,15 +171,31 @@ diag_operator_circuit
     QuantumCircuit: The circuit of the Trotter evolution operator
     """
 
-    trotter_qc = diag_operator_circuit.inverse()
+    trotter_qc = diag_operator_circuit.copy()
+    # copy
 
-    trotter_qc &= control_operator_qc.inverse()
-    trotter_qc.rz(total_duration*(-2)*magnetic_field.real/num_trotter_steps, hamiltonian.num_qubits -  1)
     trotter_qc &= control_operator_qc
+    trotter_qc.rz(total_duration*(-2)*magnetic_field.real/num_trotter_steps, hamiltonian.num_qubits -  1)
+    trotter_qc &= control_operator_qc.inverse()
 
-    trotter_qc &= diag_operator_circuit
+    trotter_qc &= diag_operator_circuit.inverse()
 
     return trotter_qc
+
+def trotter_step(
+hamiltonian: SparsePauliOp,
+total_duration: Union[float, Parameter],
+num_trotter_steps: int
+) -> QuantumCircuit:
+    trotter_qc = diag_operator_circuit.copy()
+    # copy
+
+    trotter_qc &= control_operator_qc
+    trotter_qc.rz(total_duration*(-2)*magnetic_field.real/num_trotter_steps, hamiltonian.num_qubits -  1)
+    trotter_qc &= control_operator_qc.inverse()
+
+    trotter_qc &= diag_operator_circuit.inverse()
+    return
 
 def create_control_not_steps(num_qubits: int):
 
