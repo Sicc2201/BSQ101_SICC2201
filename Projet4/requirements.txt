@@ -1,5 +1,0 @@
-qiskit
-qiskit-ibm-runtime
-qiskit[visualization]
-matplotlib
-numpy
