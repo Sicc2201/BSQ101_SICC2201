@@ -69,7 +69,7 @@ def main():
     print(observables)
 
     exact_evolution_expected_values = qevo.exact_evolution(initial_state, hamiltonian, time_values, observables)
-    # trotter_evolution_expected_values = qevo.trotter_evolution(initial_state, hamiltonian, time_values, observables, num_trotter_steps)
+    trotter_evolution_expected_values = qevo.trotter_evolution(initial_state, hamiltonian, time_values, observables, num_trotter_steps)
 
 
     end_time = time.time()
