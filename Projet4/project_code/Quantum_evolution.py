@@ -64,18 +64,12 @@ observables: List[SparsePauliOp],
     initial_statevector = Statevector(initial_state)
 
     evolution_operator = np.einsum("ki, sk, kj -> sij", v, exponent_matrix, v.conj())
-    print("U0 shape", evolution_operator.shape)
 
     evolved_evolution_operator = np.einsum("sij, j-> si", evolution_operator, initial_statevector)
-    print("Ut shape", evolved_evolution_operator.shape)
 
     observables_matrix = [np.stack(observable.to_matrix()) for observable in observables]
-    print("O shape", len(observables_matrix))
-
 
     observables_expected_values = np.einsum("si, pij, sj -> sp", evolved_evolution_operator, observables_matrix, evolved_evolution_operator.conj())
-    # observables_expected_values = evolved_evolution_operator.dot(observables_matrix).dot(evolved_evolution_operator.conj()) # np.einsum("ki, sk, kj -> sij", evolved_evolution_operator, observables_matrix, evolved_evolution_operator.conj())
-    print("O shape", observables_expected_values.shape)
 
     return observables_expected_values
 
@@ -83,8 +77,6 @@ def diagonalize_hamiltonian(hamiltonian: SparsePauliOp, time_values: NDArray[np.
     e, v = np.linalg.eigh(hamiltonian.to_matrix())
     w = np.einsum("s, i -> si", time_values, e)
     exponent_matrix = np.exp(-1j * w)
-
-    print(exponent_matrix)
 
     return exponent_matrix, v
 
@@ -116,19 +108,17 @@ num_trotter_steps: NDArray[np.int_],
 
     estimator = Estimator()
     evolved_state = initial_state.copy()
+    jobs = []   
     for time, step in zip(time_values, num_trotter_steps):
-        jobs = []
-        evolved_state = initial_state.compose(trotter_circuit_per_time(hamiltonian, time, step)) 
+        evolved_state = evolved_state.compose(trotter_circuit_per_time(hamiltonian, time, step)) 
         for _ in range(len(observables)):
             jobs.append(evolved_state)
 
-    print("observables stacked: ", [np.stack(observables) for _ in range(len())])
-    results = estimator.run(jobs, [np.stack(observables) for _ in range(len())])
+    print("Computing trotter estimation")
+    results = estimator.run(jobs, [observable.paulis for observable in observables] * len(time_values))
     observables_expected_values = results.result().values
-    print("obsevables shape: ", observables_expected_values.shape)
 
     observables_expected_values = np.reshape(observables_expected_values, (len(time_values), len(observables)))
-    print(observables_expected_values.shape)
 
     return observables_expected_values
 
@@ -151,7 +141,7 @@ num_trotter_steps: int
    
     trotter_qc = QuantumCircuit(hamiltonian.num_qubits)
     for _ in range(num_trotter_steps):
-        trotter_qc.compose(trotter_step(hamiltonian, total_duration/num_trotter_steps))
+        trotter_qc = trotter_qc.compose(trotter_step(hamiltonian, total_duration/num_trotter_steps))
 
     return trotter_qc
 
@@ -172,37 +162,69 @@ trotter_time_step: float
     
     trotter_step_qc = QuantumCircuit(hamiltonian.num_qubits)
     for coeff, pauli_list in zip(hamiltonian.coeffs, hamiltonian.paulis):
-        trotter_step_qc.compose(hamiltonian_pauli_circuit((-2)*coeff*trotter_time_step, pauli_list))
+        trotter_step_qc = trotter_step_qc.compose(hamiltonian_pauli_circuit((-2)*coeff*trotter_time_step, pauli_list))
 
     return trotter_step_qc
 
 def hamiltonian_pauli_circuit(rz_theta: float, pauli_list: PauliList) -> QuantumCircuit:
-    diag_pauli_qc = create_diag_pauli_circuit(pauli_list)
-    # create_control à implémenter
-    control_step_qc = create_cx_steps(pauli_list)
+    """
+    Construct the QuantumCircuit for a single Pauli chain of the Hamiltonian.
+
+    Args:
+    rz_theta (float): phase parameter of the R_z gate .
+    pauli_list (PauliList): The pauli chain on which we build the circuit
+
+    Returns:
+    QuantumCircuit: QuantumCircuit for a single Pauli chain of the Hamiltonian
+    """
+    diag_pauli_list, diag_pauli_qc = create_diag_pauli_circuit(pauli_list)  
+    control_step_qc, last_qubit_index = create_cx_steps(diag_pauli_list)
+
     hamiltonian_pauli_qc = diag_pauli_qc.copy()
-    hamiltonian_pauli_qc &= control_step_qc
-    hamiltonian_pauli_qc.rz(rz_theta, pauli_list.num_qubits -  1)
-    hamiltonian_pauli_qc &= control_step_qc
-    hamiltonian_pauli_qc &= diag_pauli_qc.inverse()
+    hamiltonian_pauli_qc = hamiltonian_pauli_qc.compose(control_step_qc)
+    if last_qubit_index != None:
+        hamiltonian_pauli_qc.rz(rz_theta.real, last_qubit_index)
+    hamiltonian_pauli_qc = hamiltonian_pauli_qc.compose(control_step_qc.inverse())
+    hamiltonian_pauli_qc = hamiltonian_pauli_qc.compose(diag_pauli_qc.inverse())
+
     return hamiltonian_pauli_qc
 
-def create_cx_steps(num_qubits: int):
+def create_cx_steps(pauli_list: PauliList) -> QuantumCircuit:
+    """
+    Construct the QuantumCircuit for the cnot steps.
 
-    cnot_controls = [(i, i + 1) for i in range(num_qubits - 1)]
-    qc = QuantumCircuit(num_qubits)
-    if num_qubits > 1:
-        for control, target in cnot_controls:
-            qc.cx(control, target)
+    Args:
+    pauli_list (PauliList): The pauli chain on which we build the circuit
 
-    return qc
+    Returns:
+    QuantumCircuit: QuantumCircuit that contains the cnot steps.
+    """
+    qc = QuantumCircuit(pauli_list.num_qubits)
+    z_bits = pauli_list.z[0]
+    index_array = np.where(z_bits[z_bits == 1])[0]
 
-def create_diag_pauli_circuit(pauli_list: PauliList):
+    last_qubit_index = index_array[-1]
+    
+    if(len(index_array) > 1):
+        controls = np.delete(index_array, -1, 0)
+        targets = np.delete(index_array, 0, 0)
+        qc.cx(controls, targets)
+
+    return qc, last_qubit_index
+
+def create_diag_pauli_circuit(pauli_list: PauliList) -> QuantumCircuit:
     diag_qc = QuantumCircuit(pauli_list.num_qubits)
+    diag_paulis_z = []
+    diag_paulis_x = []
     for pauli in pauli_list:
-        _, pauli_qc = po.diagonalize_pauli_with_circuit(pauli)
-        diag_qc &= pauli_qc
-    return diag_qc
+        diag_pauli, pauli_qc = po.diagonalize_pauli_with_circuit(pauli)
+        diag_qc.compose(pauli_qc)
+        diag_paulis_z.append(diag_pauli.z)
+        diag_paulis_x.append(diag_pauli.x)
+
+    diag_pauli_z = np.array(diag_paulis_z).reshape(1,pauli_list.num_qubits)
+    diag_pauli_x = np.array(diag_paulis_x).reshape(1,pauli_list.num_qubits)
+    return PauliList.from_symplectic(diag_pauli_z, diag_pauli_x), diag_qc
 
 def random_pauli_op(dimension):
     """
@@ -234,7 +256,7 @@ def create_single_spin_hamiltonian(theta: float):
     return SparsePauliOp(["Z", "Y"], [np.cos(theta)*(-0.5), np.sin(theta)*(-0.2)])
 
 def create_two_spin_hamiltonian(theta: float):
-    return SparsePauliOp(["IZ", "IZ", "XX", "YY", "ZZ"], [1.05, 0.95, 0.20, 0.20, 0.20])
+    return SparsePauliOp(["IZ", "IZ", "XX"], [1.05, 0.95, 0.20])
 
 def create_random_initial_state(num_qubits: int):
     qc = QuantumCircuit(num_qubits)
@@ -253,7 +275,7 @@ def create_two_spin_initial_state():
 
     return qc
 
-def create_observables(num_qubits: int):
+def create_observables(num_qubits: int) -> List[SparsePauliOp]:
 
     observables = []
     zeros = np.zeros((num_qubits, num_qubits))

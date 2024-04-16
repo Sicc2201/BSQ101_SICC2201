@@ -60,17 +60,6 @@ def execute_job(circuit: List[QuantumCircuit] , backend: Backend, execute_opts: 
         job = backend.run(transpiled_qc, **execute_opts)
     return job.result()
 
-def extract_data(file_path:str) -> Union[NDArray[np.float32], NDArray[np.float32], NDArray[np.float32], NDArray[np.float32]]:
-    """
-    extract data from npz files.
-    Args:
-    file_path (str): The path of the file
-    Returns:
-    distances, one_body, two_body, Nuclear_repulsion_energy: values required to calculate hamiltonian
-    """
-    npzfile = np.load(file_path)
-    return npzfile["distance"], npzfile["one_body"], npzfile["two_body"], npzfile["nuclear_repulsion_energy"]
-
 def plot_results(distances: NDArray[np.float32], energy: NDArray[np.float32], name: str):
     """
     Create a plot of the two arguments.
@@ -99,3 +88,18 @@ def validate_results(estimated_values, exact_values):
     mean_squared_error = np.mean((estimated_values - exact_values) ** 2)
     
     return mean_squared_error
+
+
+def save_quantum_evolution_plot(time_values, exact_expected_values, trotter_expected_values, observables):
+
+    num_observables = len(observables)
+    fig, axs = plt.subplots(num_observables, sharex=True, sharey=True)
+    fig.suptitle("expected values for every observables over time")
+
+    for i in range(num_observables):
+        axs[i].set_title(observables[i].paulis)
+        axs[i].plot(time_values, exact_expected_values[i], color = "red", label="Exact expected values")
+        axs[i].plot(time_values, trotter_expected_values[i], color = "blue", label="Trotter expected values")
+        axs[i].legend(loc="best")
+        
+    plt.savefig("trotter_plot")
